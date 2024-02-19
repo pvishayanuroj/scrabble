@@ -19,6 +19,12 @@ class Tile(Enum):
         raise ValueError(f"Invalid tile enum value: |{value}|")
 
 
+class Direction(Enum):
+    LEFT = 1,
+    RIGHT = 2,
+    TOP = 3,
+    BOTTOM = 4,
+
 class Dictionary:
     def __init__(self):
         self.words = set()
@@ -51,38 +57,91 @@ class Position:
     def __str__(self):
         return f"[{self.row}, {self.col}]"
 
+    def __repr__(self):
+        return f"[{self.row}, {self.col}]"
 
-class Board:
-    def __init__(self):
-        self.num_cols = 0
-        self.num_rows = 0
-        self.board = []
-        self.state = []
+    def add(self, direction: Direction):
+        if direction == Direction.TOP:
+            return Position(self.row - 1, self.col)
+        if direction == Direction.BOTTOM:
+            return Position(self.row + 1, self.col)
+        if direction == Direction.LEFT:
+            return Position(self.row, self.col - 1)
+        if direction == Direction.RIGHT:
+            return Position(self.row, self.col + 1)
+        raise ValueError(f"Invalid direction: {direction}")
 
-    def init_board(self, filepath: str):
-        self.num_cols = None
-        self.board.clear()
+
+class Size:
+    def __init__(self, num_rows: int, num_cols: int):
+        self._num_rows = num_rows
+        self._num_cols = num_cols
+
+    def is_within_bounds(self, position: Position) -> bool:
+        return (position.row >= 0
+                and position.row < self._num_rows
+                and position.col >= 0
+                and position.col < self._num_cols)
+
+    @property
+    def num_rows(self) -> int:
+        return self._num_rows
+
+    @property
+    def num_cols(self) -> int:
+        return self._num_cols
+
+
+class BoardIterator:
+    """Iterator to return positions on a board going from left to right, top to bottom."""
+
+    def __init__(self, size: Size):
+        self._curr_row = 0
+        self._curr_col = 0
+        self._size = size
+
+    def __iter__(self):
+        return self
+
+    def __next__(self) -> Position:
+        self._curr_col += 1
+        if self._curr_col == self._size.num_cols:
+            self._curr_col = 0
+            self._curr_row += 1
+        if self._curr_row == self._size.num_rows:
+            raise StopIteration
+        return Position(self._curr_row, self._curr_col)
+
+
+# The board without any letter tiles on it. Describes the scoring.
+class Scoreboard:
+    def __init__(self, filepath: str):
+        self._board = []
+        self._num_cols = None
         with open(filepath, 'r') as file:
             for line in file.readlines():
                 if line == '':
                     continue
                 row = [Tile.from_string(tile) for tile in line.strip().upper().split(' ')]
-                if self.num_cols is None:
-                    self.num_cols = len(row)
-                elif self.num_cols != len(row):
-                    raise ValueError(f"Mismatched number of columns. Expected {self.num_cols}, got {len(row)}")
-                self.board.append(row)
-        self.num_rows = len(self.board)
-        self.init_state()
-        print(f"Initialized board: {self.num_rows} rows by {self.num_cols} cols")
+                if self._num_cols is None:
+                    self._num_cols = len(row)
+                elif self._num_cols != len(row):
+                    raise ValueError(f"Mismatched number of columns. Expected {self._num_cols}, got {len(row)}")
+                self._board.append(row)
+        self._num_rows = len(self._board)
+        print(f"Loaded scoreboard: {self._num_rows} rows by {self._num_cols} cols")
 
-    def init_state(self):
-        self.state = [[''] * self.num_cols for _ in range(self.num_rows)]
+    def get_size(self) -> Size:
+        return Size(self._num_rows, self._num_cols)
+
+
+class Board:
+    def __init__(self, size: Size):
+        self._size = size
+        self._state = [[''] * self._size.num_cols for _ in range(self._size.num_rows)]
 
     def load_state(self, filepath: str):
-        if self.num_cols == 0 or self.num_rows == 0:
-            raise ValueError(f"Cannot load state without initializing the board.")
-        self.state = []
+        self._state = []
         with open(filepath, 'r') as file:
             for line in file.readlines():
                 if line == '':
@@ -95,50 +154,70 @@ class Board:
                         row.append(letter)
                     else:
                         raise ValueError(f"Invalid input letter: {letter}")
-                if len(row) != self.num_cols:
-                    raise ValueError(f"Expected {self.num_cols} columns, got {len(row)}")
-                self.state.append(row)
-            if len(self.state) != self.num_rows:
-                raise ValueError(f"Expected {self.num_rows} rows, got {len(self.state)}")
+                if len(row) != self._size.num_cols:
+                    raise ValueError(f"Expected {self._size.num_cols} columns, got {len(row)}")
+                self._state.append(row)
+            if len(self._state) != self._size.num_rows:
+                raise ValueError(f"Expected {self._size.num_rows} rows, got {len(self.state)}")
+
+    def get_tile(self, position: Position) -> str:
+        return self._state[position.row][position.col]
+
+    def get_adjacent_tile(self, position: Position, direction: Direction):
+        adjacent_position = position.add(direction)
+        if self._size.is_within_bounds(adjacent_position):
+            return self.get_tile(adjacent_position)
+        return None
 
     def are_adjacent_tiles_empty(self, position: Position) -> bool:
-        # Top
-        if position.row != 0 and self.state[position.row - 1][position.col] != '':
-            return False
-        # Bottom
-        if position.row != (self.num_rows - 1) and self.state[position.row + 1][position.col] != '':
-            return False
-        # Left
-        if position.col != 0 and self.state[position.row][position.col - 1] != '':
-            return False
-        # Right
-        if position.col != (self.num_cols - 1) and self.state[position.row][position.col + 1] != '':
-            return False
+        for direction in Direction:
+            tile = self.get_adjacent_tile(position, direction)
+            if tile is not None and tile != '':
+                return False
         return True
+
+    def is_tile_empty(self, position: Position) -> bool:
+        return self.get_tile(position) == ''
+
+    def is_tile_filled(self, position: Position) -> bool:
+        return self.get_tile(position) != ''
+
+    def is_any_adjacent_tile_filled(self, position: Position) -> bool:
+        return not self.are_adjacent_tiles_empty(position)
 
     def is_state_valid(self, dictionary: Dictionary) -> bool:
         # Check that all tiles are next to at least one other tile.
-        for row in range(self.num_rows):
-            for col in range(self.num_cols):
-                if self.state[row][col] != '' and self.are_adjacent_tiles_empty(Position(row, col)):
-                    return False
+        for position in BoardIterator(self._size):
+            if self.is_tile_filled(position) and self.are_adjacent_tiles_empty(position):
+                return False
         # Check rows.
-        for row in self.state:
+        for row in self._state:
             chunks = ''.join(row).split('-')
             chunks = filter(lambda x: len(x) > 1, chunks)
             if not all(map(lambda x: dictionary.is_word(x), chunks)):
                 return False
         # Check columns.
-        for col_num in range(self.num_cols):
+        for col_num in range(self._size.num_cols):
             chunks = ''.join(self.get_column(col_num)).split('-')
             chunks = filter(lambda x: len(x) > 1, chunks)
             if not all(map(lambda x: dictionary.is_word(x), chunks)):
                 return False
         return True
 
+    def get_first_tile_moves(self) -> List[Position]:
+        """The possible tiles that a letter can be placed to start the turn.
+
+        Possible tiles are empty but are next to existing letter tiles.
+        """
+        positions = []
+        for position in BoardIterator(self._size):
+            if self.is_tile_empty(position) and self.is_any_adjacent_tile_filled(position):
+                positions.append(position)
+        return positions
+
     def get_column(self, index) -> List[str]:
         col = []
-        for row in self.state:
+        for row in self._state:
             col.append(row[index])
         return col
 
@@ -147,10 +226,11 @@ class Board:
 
     def __str__(self):
         output = ''
-        for row in self.state:
+        for row in self._state:
             output += ' '.join(map(lambda x: '-' if x == '' else x, row))
             output += '\n'
         return output
+
 
 def get_all_substrings(word: str) -> List[str]:
     substrings = []
@@ -171,8 +251,9 @@ DICTIONARY_PATH = '/Users/pvishayanuroj/projects/scrabble/dictionaries/10k-dicti
 BOARD_PATH = '/Users/pvishayanuroj/projects/scrabble/boards/official.txt'
 STATE_PATH = '/Users/pvishayanuroj/projects/scrabble/states/test.txt'
 
-board = Board()
-board.init_board(BOARD_PATH)
+scoreboard = Scoreboard(BOARD_PATH)
+
+board = Board(scoreboard.get_size())
 board.load_state(STATE_PATH)
 
 #files = read_directory_files(PATH)
@@ -181,6 +262,8 @@ dictionary.load(DICTIONARY_PATH)
 
 is_valid = board.is_state_valid(dictionary)
 print(f"is board valid: {is_valid}")
+first_moves = board.get_first_tile_moves()
+print(first_moves)
 
 
 def solver(dictionary: Dictionary, board: Board, tiles: List[str]):
