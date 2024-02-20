@@ -1,3 +1,4 @@
+from __future__ import annotations
 from position import Position
 
 
@@ -14,6 +15,9 @@ class Size:
                 and position.row < self._num_rows
                 and position.col >= 0
                 and position.col < self._num_cols)
+
+    def __eq__(self, other: Size) -> bool:
+        return self.num_cols == other.num_cols and self.num_rows == other.num_rows
 
     @property
     def num_rows(self) -> int:

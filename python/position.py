@@ -1,3 +1,4 @@
+from __future__ import annotations
 from enums import Direction
 
 
@@ -8,6 +9,9 @@ class Position:
 
     def __copy__(self):
         return Position(self._row, self._col)
+
+    def __eq__(self, other: Position) -> bool:
+        return self.row == other.row and self.col == other.col
 
     def __str__(self):
         return f"[{self.row}, {self.col}]"
