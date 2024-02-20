@@ -262,9 +262,7 @@ class Board:
             if len(distinct_cols) == 1:
                 # Previous tiles form a vertical line.
                 col = distinct_cols.pop()
-                rows = map(lambda x: x.row, previous_moves)
-                for f in rows:
-                    print(f)
+                rows = list(map(lambda x: x.row, previous_moves))
                 top = self.get_next_empty_tile(Position(min(rows), col), Direction.UP)
                 bottom = self.get_next_empty_tile(Position(max(rows), col), Direction.DOWN)
                 if top:
@@ -274,7 +272,7 @@ class Board:
             elif len(distinct_rows) == 1:
                 # Previous tiles form a horizontal line.
                 row = distinct_rows.pop()
-                cols = map(lambda x: x.col, previous_moves)
+                cols = list(map(lambda x: x.col, previous_moves))
                 left = self.get_next_empty_tile(Position(row, min(cols)), Direction.LEFT)
                 right = self.get_next_empty_tile(Position(row, min(cols)), Direction.RIGHT)
                 if left:
