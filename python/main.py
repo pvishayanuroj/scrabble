@@ -1,6 +1,6 @@
 import os
 from enum import Enum
-from typing import List
+from typing import List, Union
 
 
 class Tile(Enum):
@@ -22,8 +22,9 @@ class Tile(Enum):
 class Direction(Enum):
     LEFT = 1,
     RIGHT = 2,
-    TOP = 3,
-    BOTTOM = 4,
+    UP = 3,
+    DOWN = 4,
+
 
 class Dictionary:
     def __init__(self):
@@ -60,10 +61,11 @@ class Position:
     def __repr__(self):
         return f"[{self.row}, {self.col}]"
 
-    def add(self, direction: Direction):
-        if direction == Direction.TOP:
+    def move(self, direction: Direction):
+        """Moves one unit in the given direction."""
+        if direction == Direction.UP:
             return Position(self.row - 1, self.col)
-        if direction == Direction.BOTTOM:
+        if direction == Direction.DOWN:
             return Position(self.row + 1, self.col)
         if direction == Direction.LEFT:
             return Position(self.row, self.col - 1)
@@ -113,8 +115,8 @@ class BoardIterator:
         return Position(self._curr_row, self._curr_col)
 
 
-# The board without any letter tiles on it. Describes the scoring.
 class Scoreboard:
+    """The board without any letter tiles on it. Describes the scoring."""
     def __init__(self, filepath: str):
         self._board = []
         self._num_cols = None
@@ -133,6 +135,12 @@ class Scoreboard:
 
     def get_size(self) -> Size:
         return Size(self._num_rows, self._num_cols)
+
+
+def get_nth_most_position(positions: List[Position], direction: Direction) -> Position:
+    """Of the given tiles, returns the tile in the most ."""
+    if len(positions) == 0:
+        raise ValueError("Positions cannot be empty")
 
 
 class Board:
@@ -163,11 +171,23 @@ class Board:
     def get_tile(self, position: Position) -> str:
         return self._state[position.row][position.col]
 
-    def get_adjacent_tile(self, position: Position, direction: Direction):
-        adjacent_position = position.add(direction)
+    def get_adjacent_tile(self, position: Position, direction: Direction) -> Union[None, str]:
+        """Returns the value of the adjacent tile or None if the tile is out of bounds."""
+        adjacent_position = position.move(direction)
         if self._size.is_within_bounds(adjacent_position):
             return self.get_tile(adjacent_position)
         return None
+
+    def get_next_empty_tile(self, position: Position, direction: Direction) -> Union[None, Position]:
+        """Returns the next empty tile in the given direction. Returns None if no empty tiles exist."""
+        curr_position = position
+        while True:
+            new_position = curr_position.move(direction)
+            if not self._size.is_within_bounds(new_position):
+                return None
+            if self.is_tile_empty(new_position):
+                return new_position
+            curr_position = new_position
 
     def are_adjacent_tiles_empty(self, position: Position) -> bool:
         for direction in Direction:
@@ -215,6 +235,57 @@ class Board:
                 positions.append(position)
         return positions
 
+    def get_next_tile_moves(self, previous_moves: List[Position]) -> List[Position]:
+        """The possible tiles that a second or later letter can be placed.
+
+        Previous moves cannot be empty.
+        Possible tiles will be within a straight line of previous moves.
+        """
+        if len(previous_moves) == 0:
+            raise ValueError(f"Previous moves list cannot be empty.")
+
+        positions = []
+        # If this is the second tile, then it can be placed at any of the four directions
+        # from the first tile.
+        if len(previous_moves) == 1:
+            position = previous_moves[0]
+            for direction in Direction:
+                next_empty_position = self.get_next_empty_tile(position, direction)
+                if next_empty_position is not None:
+                    positions.append(next_empty_position)
+        else:
+            # If this is the third or later tile, it must be placed within the same line formed
+            # by the previous tiles.
+            distinct_cols = set(map(lambda x: x.col, previous_moves))
+            distinct_rows = set(map(lambda x: x.row, previous_moves))
+
+            if len(distinct_cols) == 1:
+                # Previous tiles form a vertical line.
+                col = distinct_cols.pop()
+                rows = map(lambda x: x.row, previous_moves)
+                for f in rows:
+                    print(f)
+                top = self.get_next_empty_tile(Position(min(rows), col), Direction.UP)
+                bottom = self.get_next_empty_tile(Position(max(rows), col), Direction.DOWN)
+                if top:
+                    positions.append(top)
+                if bottom:
+                    positions.append(bottom)
+            elif len(distinct_rows) == 1:
+                # Previous tiles form a horizontal line.
+                row = distinct_rows.pop()
+                cols = map(lambda x: x.col, previous_moves)
+                left = self.get_next_empty_tile(Position(row, min(cols)), Direction.LEFT)
+                right = self.get_next_empty_tile(Position(row, min(cols)), Direction.RIGHT)
+                if left:
+                    positions.append(left)
+                if right:
+                    positions.append(right)
+            else:
+                raise ValueError(f"Previous moves must form a line: {previous_moves}")
+        return positions
+
+
     def get_column(self, index) -> List[str]:
         col = []
         for row in self._state:
@@ -260,10 +331,13 @@ board.load_state(STATE_PATH)
 dictionary = Dictionary()
 dictionary.load(DICTIONARY_PATH)
 
-is_valid = board.is_state_valid(dictionary)
-print(f"is board valid: {is_valid}")
-first_moves = board.get_first_tile_moves()
-print(first_moves)
+#is_valid = board.is_state_valid(dictionary)
+#print(f"is board valid: {is_valid}")
+#first_moves = board.get_first_tile_moves()
+#print(first_moves)
+#next_moves = board.get_next_tile_moves([Position(6, 6)])
+next_moves = board.get_next_tile_moves([Position(6, 6), Position(7, 6)])
+print(next_moves)
 
 
 def solver(dictionary: Dictionary, board: Board, tiles: List[str]):
