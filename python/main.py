@@ -1,97 +1,12 @@
+from __future__ import annotations
+import copy
 import os
-from enum import Enum
+from dictionary import Dictionary
+from enums import Direction, Shape
+from position import Position
+from scoreboard import Scoreboard
+from size import Size
 from typing import List, Union
-
-
-class Tile(Enum):
-    NORMAL = "--"
-    DOUBLE_LETTER = "DL"
-    TRIPLE_LETTER = "TL"
-    DOUBLE_WORD = "DW"
-    TRIPLE_WORD = "TW"
-    STAR = "ST"
-
-    @staticmethod
-    def from_string(value: str):
-        for tile in Tile:
-            if tile.value == value:
-                return tile
-        raise ValueError(f"Invalid tile enum value: |{value}|")
-
-
-class Direction(Enum):
-    LEFT = 1,
-    RIGHT = 2,
-    UP = 3,
-    DOWN = 4,
-
-
-class Dictionary:
-    def __init__(self):
-        self.words = set()
-        self.substrings = set()
-
-    def load(self, filepath: str):
-        with open(filepath, 'r') as file:
-            for line in file.readlines():
-                if line == '':
-                    continue
-                self.words.add(line.strip().upper())
-        self.preprocess()
-        print(f"Loaded {len(self.words)} words")
-        print(f"Preprocessed {len(self.substrings)} substrings")
-
-    def preprocess(self):
-        for word in self.words:
-            for substring in get_all_substrings(word):
-                self.substrings.add(substring)
-
-    def is_word(self, value: str) -> bool:
-        return value in self.words
-
-
-class Position:
-    def __init__(self, row: int, col: int):
-        self.row = row
-        self.col = col
-
-    def __str__(self):
-        return f"[{self.row}, {self.col}]"
-
-    def __repr__(self):
-        return f"[{self.row}, {self.col}]"
-
-    def move(self, direction: Direction):
-        """Moves one unit in the given direction."""
-        if direction == Direction.UP:
-            return Position(self.row - 1, self.col)
-        if direction == Direction.DOWN:
-            return Position(self.row + 1, self.col)
-        if direction == Direction.LEFT:
-            return Position(self.row, self.col - 1)
-        if direction == Direction.RIGHT:
-            return Position(self.row, self.col + 1)
-        raise ValueError(f"Invalid direction: {direction}")
-
-
-class Size:
-    def __init__(self, num_rows: int, num_cols: int):
-        self._num_rows = num_rows
-        self._num_cols = num_cols
-
-    def is_within_bounds(self, position: Position) -> bool:
-        return (position.row >= 0
-                and position.row < self._num_rows
-                and position.col >= 0
-                and position.col < self._num_cols)
-
-    @property
-    def num_rows(self) -> int:
-        return self._num_rows
-
-    @property
-    def num_cols(self) -> int:
-        return self._num_cols
 
 
 class BoardIterator:
@@ -115,38 +30,23 @@ class BoardIterator:
         return Position(self._curr_row, self._curr_col)
 
 
-class Scoreboard:
-    """The board without any letter tiles on it. Describes the scoring."""
-    def __init__(self, filepath: str):
-        self._board = []
-        self._num_cols = None
-        with open(filepath, 'r') as file:
-            for line in file.readlines():
-                if line == '':
-                    continue
-                row = [Tile.from_string(tile) for tile in line.strip().upper().split(' ')]
-                if self._num_cols is None:
-                    self._num_cols = len(row)
-                elif self._num_cols != len(row):
-                    raise ValueError(f"Mismatched number of columns. Expected {self._num_cols}, got {len(row)}")
-                self._board.append(row)
-        self._num_rows = len(self._board)
-        print(f"Loaded scoreboard: {self._num_rows} rows by {self._num_cols} cols")
-
-    def get_size(self) -> Size:
-        return Size(self._num_rows, self._num_cols)
-
-
-def get_nth_most_position(positions: List[Position], direction: Direction) -> Position:
-    """Of the given tiles, returns the tile in the most ."""
-    if len(positions) == 0:
-        raise ValueError("Positions cannot be empty")
+class TurnResult:
+    def __init__(self, board: Board, is_word: bool, is_substring: bool):
+        self._board = board
+        self._is_word = is_word
+        self._is_substring = is_substring
 
 
 class Board:
-    def __init__(self, size: Size):
+    def __init__(self, size: Size, state = None):
         self._size = size
-        self._state = [[''] * self._size.num_cols for _ in range(self._size.num_rows)]
+        if state:
+            self._state = state
+        else:
+            self._state = [[''] * self._size.num_cols for _ in range(self._size.num_rows)]
+
+    def copy(self):
+        return Board(self._size.copy(), copy.deepcopy(self._state))
 
     def load_state(self, filepath: str):
         self._state = []
@@ -170,6 +70,9 @@ class Board:
 
     def get_tile(self, position: Position) -> str:
         return self._state[position.row][position.col]
+
+    def set_tile(self, position: Position, letter: str):
+        self._state[position.row][position.col] = letter
 
     def get_adjacent_tile(self, position: Position, direction: Direction) -> Union[None, str]:
         """Returns the value of the adjacent tile or None if the tile is out of bounds."""
@@ -209,19 +112,19 @@ class Board:
         # Check that all tiles are next to at least one other tile.
         for position in BoardIterator(self._size):
             if self.is_tile_filled(position) and self.are_adjacent_tiles_empty(position):
+                print("SINGLE TILE FOUND")
                 return False
+        chunks = []
         # Check rows.
         for row in self._state:
-            chunks = ''.join(row).split('-')
-            chunks = filter(lambda x: len(x) > 1, chunks)
-            if not all(map(lambda x: dictionary.is_word(x), chunks)):
-                return False
+            chunks.extend(get_chunks(row))
         # Check columns.
         for col_num in range(self._size.num_cols):
-            chunks = ''.join(self.get_column(col_num)).split('-')
-            chunks = filter(lambda x: len(x) > 1, chunks)
-            if not all(map(lambda x: dictionary.is_word(x), chunks)):
-                return False
+            chunks.extend(get_chunks(self.get_column(col_num)))
+
+        invalid_words = list(filter(lambda x: not dictionary.is_word(x), chunks))
+        if len(invalid_words) > 0:
+            return False
         return True
 
     def get_first_tile_moves(self) -> List[Position]:
@@ -283,6 +186,47 @@ class Board:
                 raise ValueError(f"Previous moves must form a line: {previous_moves}")
         return positions
 
+    def is_move_valid(self, position: Position, letter: str) -> Union[None, Board]:
+        """Makes a copy of the board and adds the letter at the given position.
+
+        Returns the copy of the board if the letter is valid, otherwise returns None.
+        """
+        new_board = self.copy()
+        new_board.set_tile(position, letter)
+
+    def get_chunk(self, position: Position, shape: Shape) -> str:
+        if self.is_tile_empty(position):
+            raise ValueError(f"Cannot get chunk from an empty tile at {position}")
+        if shape == Shape.HORIZONTAL:
+            min_col = position.col
+            max_col = position.col
+            while True:
+                new_position = Position(position.row, min_col - 1)
+                if not self._size.is_within_bounds(new_position) or self.is_tile_empty(new_position):
+                    break
+                min_col -= 1
+            while True:
+                new_position = Position(position.row, max_col + 1)
+                if not self._size.is_within_bounds(new_position) or self.is_tile_empty(new_position):
+                    break
+                min_col += 1
+            return ''.join(self._state[position.row][min_col:max_col + 1])
+        elif shape == Shape.VERTICAL:
+            min_row = position.row
+            max_row = position.row
+            while True:
+                new_position = Position(min_row - 1, position.col)
+                if not self._size.is_within_bounds(new_position) or self.is_tile_empty(new_position):
+                    break
+                min_row -= 1
+            while True:
+                new_position = Position(max_row + 1, position.col)
+                if not self._size.is_within_bounds(new_position) or self.is_tile_empty(new_position):
+                    break
+                max_row += 1
+            return ''.join(self.get_column(position.col)[min_row:max_row + 1])
+        else:
+            raise ValueError(f"Invalid shape: {shape}")
 
     def get_column(self, index) -> List[str]:
         col = []
@@ -301,12 +245,9 @@ class Board:
         return output
 
 
-def get_all_substrings(word: str) -> List[str]:
-    substrings = []
-    for substring_len in range(2, len(word)):
-        for start_index in range(len(word) - substring_len + 1):
-            substrings.append(word[start_index:(start_index + substring_len)])
-    return substrings
+def get_chunks(value: List[str]) -> List[str]:
+    chunks = ''.join(map(lambda x: '-' if x == '' else x, value)).split('-')
+    return list(filter(lambda x: len(x) > 1, chunks))
 
 def read_directory_files(path):
     files = set()
@@ -315,10 +256,12 @@ def read_directory_files(path):
     return files
 
 #DICTIONARIES_PATH = '/Users/pvishayanuroj/projects/scrabble/dictionaries'
-DICTIONARY_PATH = '/Users/pvishayanuroj/projects/scrabble/dictionaries/10k-dictionary.txt'
+#DICTIONARY_PATH = '/Users/pvishayanuroj/projects/scrabble/dictionaries/10k-dictionary.txt'
 #DICTIONARY_PATH = '/Users/pvishayanuroj/projects/scrabble/dictionaries/178k-dictionary.txt'
+DICTIONARY_PATH = '/Users/pvishayanuroj/projects/scrabble/dictionaries/279k-dictionary.txt'
 BOARD_PATH = '/Users/pvishayanuroj/projects/scrabble/boards/official.txt'
-STATE_PATH = '/Users/pvishayanuroj/projects/scrabble/states/test.txt'
+#STATE_PATH = '/Users/pvishayanuroj/projects/scrabble/states/test.txt'
+STATE_PATH = '/Users/pvishayanuroj/projects/scrabble/states/test2.txt'
 
 scoreboard = Scoreboard(BOARD_PATH)
 
@@ -329,14 +272,52 @@ board.load_state(STATE_PATH)
 dictionary = Dictionary()
 dictionary.load(DICTIONARY_PATH)
 
-#is_valid = board.is_state_valid(dictionary)
-#print(f"is board valid: {is_valid}")
+is_valid = board.is_state_valid(dictionary)
+print(f"is board valid: {is_valid}")
 #first_moves = board.get_first_tile_moves()
 #print(first_moves)
 #next_moves = board.get_next_tile_moves([Position(6, 6)])
-next_moves = board.get_next_tile_moves([Position(6, 6), Position(7, 6)])
-print(next_moves)
+#next_moves = board.get_next_tile_moves([Position(6, 6), Position(7, 6)])
+#print(next_moves)
+#print(board.get_chunk(Position(7, 7), Shape.VERTICAL))
+#print(board.get_chunk(Position(7, 7), Shape.HORIZONTAL))
 
+def solver(dictionary: Dictionary, board: Board, letters: List[str]):
+    boards = solver_helper(dictionary, board, letters, [])
+    print(f"Generated {len(boards)} boards")
 
-def solver(dictionary: Dictionary, board: Board, tiles: List[str]):
-    pass
+def solver_helper(dictionary: Dictionary, board: Board, letters: List[str], moves: List[Position]):
+    """Recursive solver method."""
+    #print("------ SOVLER HELPER CALL -----")
+    #print(letters)
+    #print(moves)
+    #print(board)
+    boards = []
+    if len(moves) == 0:
+        next_moves = board.get_first_tile_moves()
+        for letter in letters:
+            new_letters = list(filter(lambda x: x != letter, letters))
+            for next_move in next_moves:
+                new_board = board.copy()
+                boards.append(new_board)
+                new_board.set_tile(next_move, letter)
+                new_moves = copy.deepcopy(moves)
+                new_moves.append(next_move)
+                boards.extend(solver_helper(dictionary, new_board, new_letters, new_moves))
+    # else:
+    #     next_moves = board.get_next_tile_moves(moves)
+    #     for letter in letters:
+    #         new_letters = list(filter(lambda x: x != letter, letters))
+    #         for next_move in next_moves:
+    #             new_board = board.copy()
+    #             boards.append(new_board)
+    #             new_board.set_tile(next_move, letter)
+    #             new_moves = copy.deepcopy(moves)
+    #             new_moves.append(next_move)
+    #             boards.extend(solver_helper(dictionary, new_board, new_letters, new_moves))
+    return boards
+
+letters = 'GUQIDTS'
+letters = [letter for letter in letters]
+
+#solver(dictionary, board, letters)
