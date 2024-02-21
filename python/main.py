@@ -1,12 +1,12 @@
 from __future__ import annotations
 import copy
 import os
-from dictionary import Dictionary
 from enums import Direction, Shape
 from position import Position
+from dictionary import Dictionary
 from scoreboard import Scoreboard
 from size import Size
-from typing import List, Union
+from typing import Union
 
 
 RED = '\033[91m'
@@ -311,16 +311,17 @@ DICTIONARY_PATH = '/Users/pvishayanuroj/projects/scrabble/dictionaries/279k-dict
 BOARD_PATH = '/Users/pvishayanuroj/projects/scrabble/boards/official.txt'
 #STATE_PATH = '/Users/pvishayanuroj/projects/scrabble/states/test.txt'
 STATE2_PATH = '/Users/pvishayanuroj/projects/scrabble/states/test2.txt'
-#STATE3_PATH = '/Users/pvishayanuroj/projects/scrabble/states/test3.txt'
+STATE3_PATH = '/Users/pvishayanuroj/projects/scrabble/states/test3.txt'
+POINTS_PATH = '/Users/pvishayanuroj/projects/scrabble/points.txt'
 
-scoreboard = Scoreboard(BOARD_PATH)
+scoreboard = Scoreboard(BOARD_PATH, POINTS_PATH)
 
 board = Board(scoreboard.get_size())
 board.load_state(STATE2_PATH)
 
 #files = read_directory_files(PATH)
 dictionary = Dictionary()
-dictionary.load(DICTIONARY_PATH)
+#dictionary.load(DICTIONARY_PATH)
 
 # is_valid = board.is_state_valid(dictionary)
 # print(f"is board valid: {is_valid}")
@@ -390,7 +391,7 @@ def solver_helper(dictionary: Dictionary, board: Board, letters: List[str], move
     #             boards.extend(solver_helper(dictionary, new_board, new_letters, new_moves))
     return boards
 
-letters = 'GUQIDTS'
+letters = 'GETTOUH'
 letters = [letter for letter in letters]
 
-solver(dictionary, board, letters)
+#solver(dictionary, board, letters)
