@@ -16,6 +16,9 @@ class Size:
                 and position.col >= 0
                 and position.col < self._num_cols)
 
+    def __str__(self):
+        return f"{self._num_rows} rows by {self._num_cols} cols"
+
     def __eq__(self, other: Size) -> bool:
         return self.num_cols == other.num_cols and self.num_rows == other.num_rows
 

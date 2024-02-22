@@ -1,6 +1,8 @@
-from enums import Shape, Tile
+from typing import List
+from enums import Direction, Shape, Tile
 from position import Position
 from size import Size
+from word_position import WordPosition
 
 
 class Scoreboard:
@@ -8,19 +10,19 @@ class Scoreboard:
     def __init__(self, board_filepath: str, points_filepath: str):
         self._board = []
         self._points = {}
-        self._num_cols = None
+        num_cols = None
         with open(board_filepath, 'r') as file:
             for line in file.readlines():
                 if line == '':
                     continue
                 row = [Tile.from_string(tile) for tile in line.strip().upper().split(' ')]
-                if self._num_cols is None:
-                    self._num_cols = len(row)
-                elif self._num_cols != len(row):
-                    raise ValueError(f"Mismatched number of columns. Expected {self._num_cols}, got {len(row)}")
+                if num_cols is None:
+                    num_cols = len(row)
+                elif num_cols != len(row):
+                    raise ValueError(f"Mismatched number of columns. Expected {num_cols}, got {len(row)}")
                 self._board.append(row)
-        self._num_rows = len(self._board)
-        print(f"Loaded scoreboard: {self._num_rows} rows by {self._num_cols} cols")
+        self._size = Size(len(self._board), num_cols)
+        print(f"Loaded scoreboard: {self._size}")
         with open(points_filepath, 'r') as file:
             for line in file.readlines():
                 if line == '':
@@ -32,10 +34,35 @@ class Scoreboard:
         if len(self._points) != 26:
             raise ValueError(f"Expected 26 letters, got {len(self._points)}")
 
-    def score_word(self, word: str, position: Position, shape: Shape) -> int:
-        """Returns the point value of the word starting at the given position."""
-        pass
+    def get_tile(self, position: Position) -> Tile:
+        return self._board[position.row][position.col]
 
+    def score_word(self, word_position: WordPosition, active_tiles: List[Position]) -> int:
+        """Returns the point value of the word starting at the given position.
+
+        The active_tiles list describes which tiles bonus tiles are allowed to be used.
+        """
+        curr_position = word_position.position
+        direction = Direction.DOWN if word_position.shape == Shape.VERTICAL else Direction.RIGHT
+        word_multipler = 1
+        total = 0
+        for letter in word_position.word:
+            letter_value = self._points[letter]
+            tile = self.get_tile(curr_position)
+            letter_multiplier = 1
+            if curr_position in active_tiles:
+                if tile == Tile.DOUBLE_WORD or tile == Tile.STAR:
+                    word_multipler *= 2
+                elif tile == Tile.TRIPLE_WORD:
+                    word_multipler *= 3
+                elif tile == Tile.DOUBLE_LETTER:
+                    letter_multiplier = 2
+                elif tile == Tile.TRIPLE_LETTER:
+                    letter_multiplier = 3
+            total += (letter_value * letter_multiplier)
+            curr_position = curr_position.move(direction)
+        total *= word_multipler
+        return total
 
     def get_size(self) -> Size:
-        return Size(self._num_rows, self._num_cols)
+        return self._size
