@@ -1,9 +1,11 @@
 from __future__ import annotations
 import copy
 import os
+import time
 from enums import Direction, Shape
 from position import Position
 from dictionary import Dictionary
+from iterators import NextLetterIterator
 from word_position import WordPosition
 from scoreboard import Scoreboard
 from size import Size
@@ -369,14 +371,15 @@ def get_shape(previous_move: Position, current_move: Position) -> Shape:
 DICTIONARY_PATH = '/Users/pvishayanuroj/projects/scrabble/dictionaries/279k-dictionary.txt'
 BOARD_PATH = '/Users/pvishayanuroj/projects/scrabble/boards/official.txt'
 #STATE_PATH = '/Users/pvishayanuroj/projects/scrabble/states/test.txt'
-STATE2_PATH = '/Users/pvishayanuroj/projects/scrabble/states/test2.txt'
-STATE3_PATH = '/Users/pvishayanuroj/projects/scrabble/states/test3.txt'
+#STATE_PATH = '/Users/pvishayanuroj/projects/scrabble/states/test2.txt'
+#STATE_PATH = '/Users/pvishayanuroj/projects/scrabble/states/test3.txt'
+STATE_PATH = '/Users/pvishayanuroj/projects/scrabble/states/test4.txt'
 POINTS_PATH = '/Users/pvishayanuroj/projects/scrabble/points.txt'
 
 scoreboard = Scoreboard(BOARD_PATH, POINTS_PATH)
 
 board = Board(scoreboard.get_size())
-board.load_state(STATE3_PATH)
+board.load_state(STATE_PATH)
 
 # turns = [
 #     Turn(Position(11, 7), 'O'),
@@ -394,6 +397,9 @@ board.load_state(STATE3_PATH)
 dictionary = Dictionary()
 dictionary.load(DICTIONARY_PATH)
 
+if not board.is_state_valid(dictionary):
+    print("Invalid board state")
+
 # is_valid = board.is_state_valid(dictionary)
 # print(f"is board valid: {is_valid}")
 #first_moves = board.get_first_tile_moves()
@@ -404,17 +410,14 @@ dictionary.load(DICTIONARY_PATH)
 #print(board.get_chunk(Position(7, 7), Shape.VERTICAL))
 #print(board.get_chunk(Position(7, 7), Shape.HORIZONTAL))
 
-def sort_by_score(other_board: Board, scoreboard: Scoreboard) -> int:
-    def sorting_key(board: Board):
-        solution = board.get_solution_from_diff(other_board)
-        return board.get_score(solution, scoreboard)
-    return sorting_key
-
 def solver(dictionary: Dictionary, board: Board, letters: List[str]):
+    start_time = time.time()
     boards = solver_helper(dictionary, board, letters, [])
-    print(f"Generated {len(boards)} boards")
+    board_generation_time = time.time()
+    print(f"Generated {len(boards)} boards in {(board_generation_time - start_time):.2f} secs")
     valid_boards: List[Board] = list(filter(lambda x: x.is_state_valid(dictionary), boards))
-    print(f"Prune down to {len(valid_boards)} boards")
+    board_pruning_time = time.time()
+    print(f"Prune down to {len(valid_boards)} boards in {(board_pruning_time - board_generation_time):.2f} secs")
 
     scored_boards = list(map(lambda x: (x, x.get_score_temp(board, scoreboard)), valid_boards))
     scored_boards.sort(key=lambda x: x[1], reverse = True)
@@ -433,15 +436,16 @@ def solver_helper(dictionary: Dictionary, board: Board, letters: List[str], move
     boards = []
     if len(moves) == 0:
         next_moves = board.get_first_tile_moves()
-        for letter in letters:
-            new_letters = list(filter(lambda x: x != letter, letters))
+        for (letter, next_letters) in NextLetterIterator(letters):
+            #for letter in letters:
+            #next_letters = list(filter(lambda x: x != letter, letters))
             for next_move in next_moves:
                 maybe_board = board.is_first_move_valid(dictionary, next_move, letter)
                 if maybe_board:
                     boards.append(maybe_board)
                     new_moves = copy.deepcopy(moves)
                     new_moves.append(next_move)
-                    boards.extend(solver_helper(dictionary, maybe_board, new_letters, new_moves))
+                    boards.extend(solver_helper(dictionary, maybe_board, next_letters, new_moves))
     # elif len(moves) == 1:
     #     previous_move = moves[0]
     #     next_moves = board.get_next_tile_moves(moves)
@@ -451,15 +455,16 @@ def solver_helper(dictionary: Dictionary, board: Board, letters: List[str], move
     #             shape = get_shape(previous_move, next_move)
     else:
         next_moves = board.get_next_tile_moves(moves)
-        for letter in letters:
-            new_letters = list(filter(lambda x: x != letter, letters))
+        for (letter, next_letters) in NextLetterIterator(letters):
+            #for letter in letters:
+            #next_letters = list(filter(lambda x: x != letter, letters))
             for next_move in next_moves:
                 maybe_board = board.is_first_move_valid(dictionary, next_move, letter)
                 if maybe_board:
                     boards.append(maybe_board)
                     new_moves = copy.deepcopy(moves)
                     new_moves.append(next_move)
-                    boards.extend(solver_helper(dictionary, maybe_board, new_letters, new_moves))
+                    boards.extend(solver_helper(dictionary, maybe_board, next_letters, new_moves))
 
     # else:
     #     next_moves = board.get_next_tile_moves(moves)
@@ -474,7 +479,8 @@ def solver_helper(dictionary: Dictionary, board: Board, letters: List[str], move
     #             boards.extend(solver_helper(dictionary, new_board, new_letters, new_moves))
     return boards
 
-letters = 'GETHUTO'
+#letters = 'GETHUTO'
+letters = 'NRALEFI'
 letters = [letter for letter in letters]
 
 solver(dictionary, board, letters)
