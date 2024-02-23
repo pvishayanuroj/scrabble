@@ -1,4 +1,28 @@
 from typing import List
+from position import Position
+from size import Size
+
+
+class BoardIterator:
+    """Iterator to return positions on a board going from left to right, top to bottom."""
+
+    def __init__(self, size: Size):
+        self._curr_row = 0
+        self._curr_col = 0
+        self._size = size
+
+    def __iter__(self):
+        return self
+
+    def __next__(self) -> Position:
+        position = Position(self._curr_row, self._curr_col)
+        self._curr_col += 1
+        if self._curr_col == self._size.num_cols:
+            self._curr_col = 0
+            self._curr_row += 1
+        if position.row == self._size.num_rows:
+            raise StopIteration
+        return position
 
 
 class NextLetter:
