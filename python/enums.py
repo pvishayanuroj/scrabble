@@ -28,3 +28,17 @@ class Shape(Enum):
     """The shape of the word that the current form is taking."""
     VERTICAL = 1,
     HORIZONTAL = 2,
+
+
+class SolutionState(Enum):
+    NO_LETTERS = 1,
+    FIRST_LETTER = 2,
+    VERTICAL = 3,
+    HORIZONTAL = 4,
+
+
+class MoveStatus(Enum):
+    INVALID = 1,
+    PARTIAL_WORD = 2,
+    COMPLETE_WORD = 3,
+    PARTIAL_AND_COMPLETE_WORD = 4,

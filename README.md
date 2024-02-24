@@ -33,3 +33,15 @@ Generated 1149690 boards in 231.68 secs
 Prune down to 970 boards in 416.09 secs
 
 No change expected, since there are no duplicate letters in the hand tiles.
+
+Implemented further checks to mostly store boards with full words, rather than valid substrings.
+
+test3
+
+Generated 562 boards in 1.72 secs
+Prune down to 182 boards in 0.23 secs
+
+test4
+
+Generated 3221 boards in 13.55 secs
+Prune down to 828 boards in 1.18 secs

@@ -3,7 +3,7 @@ import copy
 import os
 import time
 from board import Board
-from enums import Shape
+from enums import MoveStatus, Shape, SolutionState
 from position import Position
 from dictionary import Dictionary
 from iterators import NextLetterIterator
@@ -32,8 +32,8 @@ DICTIONARY_PATH = '/Users/pvishayanuroj/projects/scrabble/dictionaries/279k-dict
 BOARD_PATH = '/Users/pvishayanuroj/projects/scrabble/boards/official.txt'
 #STATE_PATH = '/Users/pvishayanuroj/projects/scrabble/states/test.txt'
 #STATE_PATH = '/Users/pvishayanuroj/projects/scrabble/states/test2.txt'
-STATE_PATH = '/Users/pvishayanuroj/projects/scrabble/states/test3.txt'
-#STATE_PATH = '/Users/pvishayanuroj/projects/scrabble/states/test4.txt'
+#STATE_PATH = '/Users/pvishayanuroj/projects/scrabble/states/test3.txt'
+STATE_PATH = '/Users/pvishayanuroj/projects/scrabble/states/test4.txt'
 POINTS_PATH = '/Users/pvishayanuroj/projects/scrabble/points.txt'
 
 scoreboard = Scoreboard(BOARD_PATH, POINTS_PATH)
@@ -72,7 +72,7 @@ if not board.is_state_valid(dictionary):
 
 def solver(dictionary: Dictionary, board: Board, letters: List[str]):
     start_time = time.time()
-    boards = solver_helper(dictionary, board, letters, [])
+    boards = solver_helper(dictionary, board, letters, [], SolutionState.NO_LETTERS)
     board_generation_time = time.time()
     print(f"Generated {len(boards)} boards in {(board_generation_time - start_time):.2f} secs")
     valid_boards: List[Board] = list(filter(lambda x: x.is_state_valid(dictionary), boards))
@@ -87,60 +87,66 @@ def solver(dictionary: Dictionary, board: Board, letters: List[str]):
         print(f"Board {index}, Score {score}")
         print(final_board.get_diff(board))
 
-def solver_helper(dictionary: Dictionary, board: Board, letters: List[str], moves: List[Position]):
+def solver_helper(dictionary: Dictionary, board: Board, letters: List[str], moves: List[Position], solution_state: SolutionState):
     """Recursive solver method."""
-    #print("------ SOVLER HELPER CALL -----")
-    #print(letters)
-    #print(moves)
-    #print(board)
     boards = []
-    if len(moves) == 0:
+    if solution_state == SolutionState.NO_LETTERS:
         next_moves = board.get_first_tile_moves()
         for (letter, next_letters) in NextLetterIterator(letters):
-            #for letter in letters:
-            #next_letters = list(filter(lambda x: x != letter, letters))
             for next_move in next_moves:
-                maybe_board = board.is_first_move_valid(dictionary, next_move, letter)
-                if maybe_board:
-                    boards.append(maybe_board)
+                (result, new_board) = board.is_first_move_valid(dictionary, next_move, letter)
+                if result == MoveStatus.COMPLETE_WORD:
+                    boards.append(new_board)
+                elif result == MoveStatus.PARTIAL_AND_COMPLETE_WORD:
+                    boards.append(new_board)
                     new_moves = copy.deepcopy(moves)
                     new_moves.append(next_move)
-                    boards.extend(solver_helper(dictionary, maybe_board, next_letters, new_moves))
-    # elif len(moves) == 1:
-    #     previous_move = moves[0]
-    #     next_moves = board.get_next_tile_moves(moves)
-    #     for letter in letters:
-    #         new_letters = list(filter(lambda x: x != letter, letters))
-    #         for next_move in next_moves:
-    #             shape = get_shape(previous_move, next_move)
-    else:
+                    boards.extend(solver_helper(dictionary, new_board, next_letters, new_moves, SolutionState.FIRST_LETTER))
+                elif result == MoveStatus.PARTIAL_WORD:
+                    new_moves = copy.deepcopy(moves)
+                    new_moves.append(next_move)
+                    boards.extend(solver_helper(dictionary, new_board, next_letters, new_moves, SolutionState.FIRST_LETTER))
+    elif solution_state == SolutionState.FIRST_LETTER:
         next_moves = board.get_next_tile_moves(moves)
         for (letter, next_letters) in NextLetterIterator(letters):
-            #for letter in letters:
-            #next_letters = list(filter(lambda x: x != letter, letters))
             for next_move in next_moves:
-                maybe_board = board.is_first_move_valid(dictionary, next_move, letter)
-                if maybe_board:
-                    boards.append(maybe_board)
+                rows = set(map(lambda x: x.row, moves))
+                cols = set(map(lambda x: x.col, moves))
+                next_solution_state = SolutionState.VERTICAL
+                if len(rows) == 1 and len(cols) != 1:
+                    next_solution_state = SolutionState.HORIZONTAL
+                (result, new_board) = board.is_move_valid(dictionary, next_move, letter, next_solution_state)
+                if result == MoveStatus.COMPLETE_WORD:
+                    boards.append(new_board)
+                elif result == MoveStatus.PARTIAL_AND_COMPLETE_WORD:
+                    boards.append(new_board)
                     new_moves = copy.deepcopy(moves)
                     new_moves.append(next_move)
-                    boards.extend(solver_helper(dictionary, maybe_board, next_letters, new_moves))
-
-    # else:
-    #     next_moves = board.get_next_tile_moves(moves)
-    #     for letter in letters:
-    #         new_letters = list(filter(lambda x: x != letter, letters))
-    #         for next_move in next_moves:
-    #             new_board = board.copy()
-    #             boards.append(new_board)
-    #             new_board.set_tile(next_move, letter)
-    #             new_moves = copy.deepcopy(moves)
-    #             new_moves.append(next_move)
-    #             boards.extend(solver_helper(dictionary, new_board, new_letters, new_moves))
+                    boards.extend(solver_helper(dictionary, new_board, next_letters, new_moves, next_solution_state))
+                elif result == MoveStatus.PARTIAL_WORD:
+                    new_moves = copy.deepcopy(moves)
+                    new_moves.append(next_move)
+                    boards.extend(solver_helper(dictionary, new_board, next_letters, new_moves, next_solution_state))
+    elif solution_state == SolutionState.HORIZONTAL or solution_state == SolutionState.VERTICAL:
+        next_moves = board.get_next_tile_moves(moves)
+        for (letter, next_letters) in NextLetterIterator(letters):
+            for next_move in next_moves:
+                (result, new_board) = board.is_move_valid(dictionary, next_move, letter, solution_state)
+                if result == MoveStatus.COMPLETE_WORD:
+                    boards.append(new_board)
+                elif result == MoveStatus.PARTIAL_AND_COMPLETE_WORD:
+                    boards.append(new_board)
+                    new_moves = copy.deepcopy(moves)
+                    new_moves.append(next_move)
+                    boards.extend(solver_helper(dictionary, new_board, next_letters, new_moves, solution_state))
+                elif result == MoveStatus.PARTIAL_WORD:
+                    new_moves = copy.deepcopy(moves)
+                    new_moves.append(next_move)
+                    boards.extend(solver_helper(dictionary, new_board, next_letters, new_moves, solution_state))
     return boards
 
-letters = 'GETHUTO'
-#letters = 'NRALEFI'
+#letters = 'GETHUTO'
+letters = 'NRALEFI'
 letters = [letter for letter in letters]
 
 solver(dictionary, board, letters)
