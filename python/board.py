@@ -277,7 +277,8 @@ class Board:
         return col
 
     def save(self, filepath: str):
-        pass
+        with open(filepath, 'w') as file:
+            file.write(str(self))
 
     def __str__(self):
         output = ''

@@ -32,8 +32,8 @@ DICTIONARY_PATH = '/Users/pvishayanuroj/projects/scrabble/dictionaries/279k-dict
 BOARD_PATH = '/Users/pvishayanuroj/projects/scrabble/boards/official.txt'
 #STATE_PATH = '/Users/pvishayanuroj/projects/scrabble/states/test.txt'
 #STATE_PATH = '/Users/pvishayanuroj/projects/scrabble/states/test2.txt'
-#STATE_PATH = '/Users/pvishayanuroj/projects/scrabble/states/test3.txt'
-STATE_PATH = '/Users/pvishayanuroj/projects/scrabble/states/test4.txt'
+STATE_PATH = '/Users/pvishayanuroj/projects/scrabble/states/test3.txt'
+#STATE_PATH = '/Users/pvishayanuroj/projects/scrabble/states/test4.txt'
 POINTS_PATH = '/Users/pvishayanuroj/projects/scrabble/points.txt'
 
 scoreboard = Scoreboard(BOARD_PATH, POINTS_PATH)
@@ -86,6 +86,8 @@ def solver(dictionary: Dictionary, board: Board, letters: List[str]):
     for index, (final_board, score) in enumerate(final_boards):
         print(f"Board {index}, Score {score}")
         print(final_board.get_diff(board))
+        final_board.save('/Users/pvishayanuroj/projects/scrabble/states/test5.txt')
+        break
 
 def solver_helper(dictionary: Dictionary, board: Board, letters: List[str], moves: List[Position], solution_state: SolutionState):
     """Recursive solver method."""
@@ -145,8 +147,8 @@ def solver_helper(dictionary: Dictionary, board: Board, letters: List[str], move
                     boards.extend(solver_helper(dictionary, new_board, next_letters, new_moves, solution_state))
     return boards
 
-#letters = 'GETHUTO'
-letters = 'NRALEFI'
+letters = 'GETHUTO'
+#letters = 'NRALEFI'
 letters = [letter for letter in letters]
 
 solver(dictionary, board, letters)
