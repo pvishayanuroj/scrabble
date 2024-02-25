@@ -289,6 +289,7 @@ class Board:
     def save(self, filepath: str):
         with open(filepath, 'w') as file:
             file.write(str(self))
+        print(f"Wrote {filepath}")
 
     def get_diff(self, other: Board) -> str:
         if self._size != other.size:

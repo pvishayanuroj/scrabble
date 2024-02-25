@@ -40,15 +40,14 @@ def main():
         for solution in solution_boards:
             turns = solution.get_turns_from_diff(board)
             solutions.append(Solution(board, turns, scoreboard))
-        print(f"Generated {len(solutions)} solutions")
-        solutions.sort(reverse=True)
-        for index, solution in enumerate(solutions[:MAX_SOLUTIONS_TO_SHOW]):
-            print(f"\n---------Solution {index}-----------\n{solution}")
+        selected_solution = select_solution(solutions)
+        selected_solution.save(generate_file_name(args.games, game_name))
 
 
-def generate_file_name(game_name: str) -> str:
+def generate_file_name(directory_path: str, game_name: str) -> str:
     timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
-    return f"{game_name}_{timestamp}"
+    filename = f"{game_name}_{timestamp}.txt"
+    return os.path.join(directory_path, filename)
 
 
 def get_menu_selection() -> MenuSelection:
@@ -60,7 +59,7 @@ def get_menu_selection() -> MenuSelection:
             user_input = input("\nMake a selection: ")
             value = int(user_input)
             return MenuSelection(value)
-        except ValueError:
+        except:
             print("Invalid input. Select a valid option.")
 
 
@@ -82,7 +81,7 @@ def select_game_name(game_names: List[str]) -> str:
             user_input = input("\nMake a selection: ")
             value = int(user_input)
             return game_names[value - 1]
-        except (ValueError, IndexError):
+        except:
             print("Invalid input. Select a valid option.")
 
 
@@ -111,6 +110,20 @@ def get_player_tiles() -> List[str]:
             return tiles
         else:
             print("Invalid tile input")
+
+
+def select_solution(solutions: List[Solution]) -> Solution:
+    print(f"Generated {len(solutions)} solutions")
+    sorted_solutions = sorted(solutions, reverse=True)[:MAX_SOLUTIONS_TO_SHOW]
+    for index, solution in enumerate(sorted_solutions):
+        print(f"\n---------Solution {index + 1}-----------\n{solution}")
+    while True:
+        try:
+            user_input = input("\nMake a selection: ")
+            value = int(user_input)
+            return solutions[value - 1]
+        except:
+            print("Invalid input. Select a valid option.")
 
 
 # board = Board(scoreboard.get_size())

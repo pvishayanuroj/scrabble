@@ -23,3 +23,6 @@ class Solution:
         output = self._board.get_diff(self._original_board)
         output += f"\nScore: {RED}{self._score}{ENDC}"
         return output
+
+    def save(self, filepath: str):
+        self._board.save(filepath)
