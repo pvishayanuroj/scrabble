@@ -21,13 +21,13 @@ class Turn:
         return self._letter
 
 
-class Solution:
+class Turns:
     def __init__(self, turns):
         self._turns = turns
         self._state = SolutionState.NO_LETTERS
 
     def __copy__(self):
-        return Solution(copy.deepcopy(self._turns))
+        return Turns(copy.deepcopy(self._turns))
 
     @property
     def turns(self) -> List[Turn]:

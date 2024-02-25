@@ -1,4 +1,4 @@
-from enum import Enum
+from enum import Enum, IntEnum
 
 
 class Tile(Enum):
@@ -42,3 +42,21 @@ class MoveStatus(Enum):
     PARTIAL_WORD = 2,
     COMPLETE_WORD = 3,
     PARTIAL_AND_COMPLETE_WORD = 4,
+
+
+class MenuSelection(IntEnum):
+    LOAD_GAME = 1,
+    LOAD_FROM_FILE = 2,
+    UPDATE_BOARD = 3,
+    QUIT = 4,
+
+    def __str__(self):
+        if self == MenuSelection.LOAD_GAME:
+            return "Load game"
+        if self == MenuSelection.LOAD_FROM_FILE:
+            return "Load from file"
+        if self == MenuSelection.UPDATE_BOARD:
+            return "Update board"
+        if self == MenuSelection.QUIT:
+            return "Quit"
+        return "Missing menu option description"

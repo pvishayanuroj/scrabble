@@ -2,30 +2,31 @@ from typing import List
 
 
 class Dictionary:
-    def __init__(self):
-        self.words = set()
-        self.substrings = set()
+    def __init__(self, filepath: str):
+        self._words = set()
+        self._substrings = set()
+        self.load(filepath)
 
     def load(self, filepath: str):
         with open(filepath, 'r') as file:
             for line in file.readlines():
                 if line == '':
                     continue
-                self.words.add(line.strip().upper())
+                self._words.add(line.strip().upper())
         self.preprocess()
-        print(f"Loaded {len(self.words)} words")
-        print(f"Preprocessed {len(self.substrings)} substrings")
+        print(f"Loaded {len(self._words)} words")
+        print(f"Preprocessed {len(self._substrings)} substrings")
 
     def preprocess(self):
-        for word in self.words:
+        for word in self._words:
             for substring in get_all_substrings(word):
-                self.substrings.add(substring)
+                self._substrings.add(substring)
 
     def is_word(self, value: str) -> bool:
-        return value in self.words
+        return value in self._words
 
     def is_substring(self, value: str) -> bool:
-        return value in self.substrings
+        return value in self._substrings
 
 
 def get_all_substrings(word: str) -> List[str]:

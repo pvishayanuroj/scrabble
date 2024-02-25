@@ -1,45 +1,120 @@
 from __future__ import annotations
-import copy
+import argparse
+import datetime
 import os
-import time
+import re
 from board import Board
-from enums import MoveStatus, Shape, SolutionState
-from position import Position
 from dictionary import Dictionary
-from iterators import NextLetterIterator
+from enums import MenuSelection
 from scoreboard import Scoreboard
+from solution import Solution
+from solver import solve
 from typing import List
 
 
-def read_directory_files(path):
-    files = set()
-    for filename in os.listdir(path):
-        files.add(filename)
-    return files
+GAME_FILE_PATTERN = r'^(\w+)_\d{8}_\d{6}$'
+MAX_SOLUTIONS_TO_SHOW = 5
 
-def get_shape(previous_move: Position, current_move: Position) -> Shape:
-    if previous_move.col == current_move.col:
-        return Shape.VERTICAL
-    elif previous_move.row == current_move.row:
-        return Shape.HORIZONTAL
-    else:
-        raise ValueError(f"Cannot get shape of previous move {previous_move} and current move {current_move}")
+def main():
+    parser = argparse.ArgumentParser(description="A command line word puzzle solver.")
 
-#DICTIONARIES_PATH = '/Users/pvishayanuroj/projects/scrabble/dictionaries'
-#DICTIONARY_PATH = '/Users/pvishayanuroj/projects/scrabble/dictionaries/10k-dictionary.txt'
-#DICTIONARY_PATH = '/Users/pvishayanuroj/projects/scrabble/dictionaries/178k-dictionary.txt'
-DICTIONARY_PATH = '/Users/pvishayanuroj/projects/scrabble/dictionaries/279k-dictionary.txt'
-BOARD_PATH = '/Users/pvishayanuroj/projects/scrabble/boards/official.txt'
-#STATE_PATH = '/Users/pvishayanuroj/projects/scrabble/states/test.txt'
-#STATE_PATH = '/Users/pvishayanuroj/projects/scrabble/states/test2.txt'
-STATE_PATH = '/Users/pvishayanuroj/projects/scrabble/states/test3.txt'
-#STATE_PATH = '/Users/pvishayanuroj/projects/scrabble/states/test4.txt'
-POINTS_PATH = '/Users/pvishayanuroj/projects/scrabble/points.txt'
+    parser.add_argument("-d", "--dictionary", default="dictionaries/279k-dictionary.txt", help="Dictionary file path (default: %(default)s)")
+    parser.add_argument("-b", "--board", default="boards/official.txt", help="Board file path (default: %(default)s)")
+    parser.add_argument("-p", "--points", default="points.txt", help="Points file path (default: %(default)s)")
+    parser.add_argument("-g", "--games", default="games/", help="Games directory path (default: %(default)s)")
 
-scoreboard = Scoreboard(BOARD_PATH, POINTS_PATH)
+    args = parser.parse_args()
 
-board = Board(scoreboard.get_size())
-board.load_state(STATE_PATH)
+    selection = get_menu_selection()
+    if selection == MenuSelection.LOAD_GAME:
+        game_names = get_games(args.games)
+        game_name = select_game_name(game_names)
+        game_file = get_latest_game_file(args.games, game_name)
+        player_tiles = get_player_tiles()
+        scoreboard = Scoreboard(args.board, args.points)
+        dictionary = Dictionary(args.dictionary)
+        board = Board(scoreboard.get_size())
+        board.load_state(game_file)
+        solution_boards = solve(dictionary, board, scoreboard, player_tiles)
+        solutions = []
+        for solution in solution_boards:
+            turns = solution.get_turns_from_diff(board)
+            solutions.append(Solution(board, turns, scoreboard))
+        print(f"Generated {len(solutions)} solutions")
+        solutions.sort(reverse=True)
+        for index, solution in enumerate(solutions[:MAX_SOLUTIONS_TO_SHOW]):
+            print(f"\n---------Solution {index}-----------\n{solution}")
+
+
+def generate_file_name(game_name: str) -> str:
+    timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
+    return f"{game_name}_{timestamp}"
+
+
+def get_menu_selection() -> MenuSelection:
+    print("")
+    for index, option in enumerate(MenuSelection):
+        print(f"{index + 1}) {option}")
+    while True:
+        try:
+            user_input = input("\nMake a selection: ")
+            value = int(user_input)
+            return MenuSelection(value)
+        except ValueError:
+            print("Invalid input. Select a valid option.")
+
+
+def get_games(directory_path: str) -> List[str]:
+    games = set()
+    for filename in os.listdir(directory_path):
+        match = re.match(GAME_FILE_PATTERN, filename)
+        if match:
+            games.add(match.groups()[0])
+    return sorted(list(games))
+
+
+def select_game_name(game_names: List[str]) -> str:
+    print("\nAvailable games:")
+    for index, option in enumerate(game_names):
+        print(f"{index + 1}) {option}")
+    while True:
+        try:
+            user_input = input("\nMake a selection: ")
+            value = int(user_input)
+            return game_names[value - 1]
+        except (ValueError, IndexError):
+            print("Invalid input. Select a valid option.")
+
+
+def get_latest_game_file(directory_path: str, game_name: str) -> str:
+    files = []
+    for filename in os.listdir(directory_path):
+        match = re.match(GAME_FILE_PATTERN, filename)
+        if match and match.groups()[0] == game_name:
+            files.append(os.path.join(directory_path, filename))
+    return sorted(files, reverse=True)[0]
+
+
+def get_player_tiles() -> List[str]:
+    pattern = r'^[a-zA-Z]+$'
+    while True:
+        user_input = input("\nEnter tiles: ")
+        match = re.match(pattern, user_input)
+        if match:
+            tiles = [letter for letter in user_input.upper().strip()]
+            output = '\nTiles: '
+            for index, tile in enumerate(tiles):
+                output += f"'{tile}'"
+                if index != len(tiles) - 1:
+                    output += ", "
+            print(output)
+            return tiles
+        else:
+            print("Invalid tile input")
+
+
+# board = Board(scoreboard.get_size())
+# board.load_state(STATE_PATH)
 
 # turns = [
 #     Turn(Position(11, 7), 'O'),
@@ -53,12 +128,8 @@ board.load_state(STATE_PATH)
 # print(board)
 # print(board.get_score(solution, scoreboard))
 
-#files = read_directory_files(PATH)
-dictionary = Dictionary()
-dictionary.load(DICTIONARY_PATH)
-
-if not board.is_state_valid(dictionary):
-    print("Invalid board state")
+# if not board.is_state_valid(dictionary):
+#     print("Invalid board state")
 
 # is_valid = board.is_state_valid(dictionary)
 # print(f"is board valid: {is_valid}")
@@ -70,85 +141,5 @@ if not board.is_state_valid(dictionary):
 #print(board.get_chunk(Position(7, 7), Shape.VERTICAL))
 #print(board.get_chunk(Position(7, 7), Shape.HORIZONTAL))
 
-def solver(dictionary: Dictionary, board: Board, letters: List[str]):
-    start_time = time.time()
-    boards = solver_helper(dictionary, board, letters, [], SolutionState.NO_LETTERS)
-    board_generation_time = time.time()
-    print(f"Generated {len(boards)} boards in {(board_generation_time - start_time):.2f} secs")
-    valid_boards: List[Board] = list(filter(lambda x: x.is_state_valid(dictionary), boards))
-    board_pruning_time = time.time()
-    print(f"Prune down to {len(valid_boards)} boards in {(board_pruning_time - board_generation_time):.2f} secs")
-
-    scored_boards = list(map(lambda x: (x, x.get_score_temp(board, scoreboard)), valid_boards))
-    scored_boards.sort(key=lambda x: x[1], reverse = True)
-    final_boards = scored_boards[:20]
-
-    for index, (final_board, score) in enumerate(final_boards):
-        print(f"Board {index}, Score {score}")
-        print(final_board.get_diff(board))
-        final_board.save('/Users/pvishayanuroj/projects/scrabble/states/test5.txt')
-        break
-
-def solver_helper(dictionary: Dictionary, board: Board, letters: List[str], moves: List[Position], solution_state: SolutionState):
-    """Recursive solver method."""
-    boards = []
-    if solution_state == SolutionState.NO_LETTERS:
-        next_moves = board.get_first_tile_moves()
-        for (letter, next_letters) in NextLetterIterator(letters):
-            for next_move in next_moves:
-                (result, new_board) = board.is_first_move_valid(dictionary, next_move, letter)
-                if result == MoveStatus.COMPLETE_WORD:
-                    boards.append(new_board)
-                elif result == MoveStatus.PARTIAL_AND_COMPLETE_WORD:
-                    boards.append(new_board)
-                    new_moves = copy.deepcopy(moves)
-                    new_moves.append(next_move)
-                    boards.extend(solver_helper(dictionary, new_board, next_letters, new_moves, SolutionState.FIRST_LETTER))
-                elif result == MoveStatus.PARTIAL_WORD:
-                    new_moves = copy.deepcopy(moves)
-                    new_moves.append(next_move)
-                    boards.extend(solver_helper(dictionary, new_board, next_letters, new_moves, SolutionState.FIRST_LETTER))
-    elif solution_state == SolutionState.FIRST_LETTER:
-        next_moves = board.get_next_tile_moves(moves)
-        for (letter, next_letters) in NextLetterIterator(letters):
-            for next_move in next_moves:
-                rows = set(map(lambda x: x.row, moves))
-                cols = set(map(lambda x: x.col, moves))
-                next_solution_state = SolutionState.VERTICAL
-                if len(rows) == 1 and len(cols) != 1:
-                    next_solution_state = SolutionState.HORIZONTAL
-                (result, new_board) = board.is_move_valid(dictionary, next_move, letter, next_solution_state)
-                if result == MoveStatus.COMPLETE_WORD:
-                    boards.append(new_board)
-                elif result == MoveStatus.PARTIAL_AND_COMPLETE_WORD:
-                    boards.append(new_board)
-                    new_moves = copy.deepcopy(moves)
-                    new_moves.append(next_move)
-                    boards.extend(solver_helper(dictionary, new_board, next_letters, new_moves, next_solution_state))
-                elif result == MoveStatus.PARTIAL_WORD:
-                    new_moves = copy.deepcopy(moves)
-                    new_moves.append(next_move)
-                    boards.extend(solver_helper(dictionary, new_board, next_letters, new_moves, next_solution_state))
-    elif solution_state == SolutionState.HORIZONTAL or solution_state == SolutionState.VERTICAL:
-        next_moves = board.get_next_tile_moves(moves)
-        for (letter, next_letters) in NextLetterIterator(letters):
-            for next_move in next_moves:
-                (result, new_board) = board.is_move_valid(dictionary, next_move, letter, solution_state)
-                if result == MoveStatus.COMPLETE_WORD:
-                    boards.append(new_board)
-                elif result == MoveStatus.PARTIAL_AND_COMPLETE_WORD:
-                    boards.append(new_board)
-                    new_moves = copy.deepcopy(moves)
-                    new_moves.append(next_move)
-                    boards.extend(solver_helper(dictionary, new_board, next_letters, new_moves, solution_state))
-                elif result == MoveStatus.PARTIAL_WORD:
-                    new_moves = copy.deepcopy(moves)
-                    new_moves.append(next_move)
-                    boards.extend(solver_helper(dictionary, new_board, next_letters, new_moves, solution_state))
-    return boards
-
-letters = 'GETHUTO'
-#letters = 'NRALEFI'
-letters = [letter for letter in letters]
-
-solver(dictionary, board, letters)
+if __name__ == "__main__":
+    main()

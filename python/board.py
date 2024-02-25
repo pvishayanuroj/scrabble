@@ -1,5 +1,6 @@
 from __future__ import annotations
 import copy
+from constants import ENDC, RED
 from dictionary import Dictionary
 from enums import Direction, MoveStatus, Shape, SolutionState
 from iterators import BoardIterator
@@ -7,12 +8,8 @@ from position import Position
 from scoreboard import Scoreboard
 from size import Size
 from typing import List, Union
-from util import Solution, Turn
+from turns import Turns, Turn
 from word_position import WordPosition
-
-
-RED = '\033[91m'
-ENDC = '\033[0m'
 
 
 def get_chunks(value: List[str]) -> List[str]:
@@ -34,12 +31,25 @@ class Board:
         else:
             self._state = [[''] * self._size.num_cols for _ in range(self._size.num_rows)]
 
+    def __str__(self):
+        output = ''
+        for row in self._state:
+            output += ' '.join(map(lambda x: '-' if x == '' else x, row))
+            output += '\n'
+        return output
+
     @property
     def size(self) -> Size:
         return self._size
 
     def copy(self):
         return Board(self._size.copy(), copy.deepcopy(self._state))
+
+    def copy_from_turns(self, turns: List[Turn]) -> Board:
+        new_board = self.copy()
+        for turn in turns:
+            new_board.set_tile(turn.position, turn.letter)
+        return new_board
 
     def load_state(self, filepath: str):
         self._state = []
@@ -60,6 +70,7 @@ class Board:
                 self._state.append(row)
             if len(self._state) != self._size.num_rows:
                 raise ValueError(f"Expected {self._size.num_rows} rows, got {len(self.state)}")
+        print(f"Successfully loaded {filepath}")
 
     def get_tile(self, position: Position) -> str:
         return self._state[position.row][position.col]
@@ -103,11 +114,10 @@ class Board:
     def is_any_adjacent_tile_filled(self, position: Position) -> bool:
         return not self.are_adjacent_tiles_empty(position)
 
-    def is_state_valid(self, dictionary: Dictionary) -> bool:
+    def is_state_valid(self, dictionary: Dictionary) -> tuple[bool, List[str]]:
         # Check that all tiles are next to at least one other tile.
         for position in BoardIterator(self._size):
             if self.is_tile_filled(position) and self.are_adjacent_tiles_empty(position):
-                print("SINGLE TILE FOUND")
                 return False
         chunks = []
         # Check rows.
@@ -119,8 +129,8 @@ class Board:
 
         invalid_words = list(filter(lambda x: not dictionary.is_word(x), chunks))
         if len(invalid_words) > 0:
-            return False
-        return True
+            return (False, invalid_words)
+        return (True, [])
 
     def get_first_tile_moves(self) -> List[Position]:
         """The possible tiles that a letter can be placed to start the turn.
@@ -280,13 +290,6 @@ class Board:
         with open(filepath, 'w') as file:
             file.write(str(self))
 
-    def __str__(self):
-        output = ''
-        for row in self._state:
-            output += ' '.join(map(lambda x: '-' if x == '' else x, row))
-            output += '\n'
-        return output
-
     def get_diff(self, other: Board) -> str:
         if self._size != other.size:
             raise ValueError(f"Cannot print diff of different sized boards.")
@@ -304,17 +307,16 @@ class Board:
                 output += "\n"
         return output
 
-    def get_solution_from_diff(self, other: Board) -> Solution:
+    def get_turns_from_diff(self, other: Board) -> List[Turn]:
         turns = []
         for position in BoardIterator(self._size):
             tile = self.get_tile(position)
             other_tile = other.get_tile(position)
             if tile != other_tile:
                 turns.append(Turn(position, tile))
-        return Solution(turns)
+        return turns
 
-    def get_score(self, solution: Solution, scoreboard: Scoreboard) -> int:
-        turns = solution.turns
+    def get_score(self, turns: List[Turn], scoreboard: Scoreboard) -> int:
         active_tiles = [turn.position for turn in turns]
         if len(turns) == 1:
             score = 0
@@ -340,5 +342,5 @@ class Board:
             return score
 
     def get_score_temp(self, other_board: Board, scoreboard: Scoreboard) -> int:
-        solution = self.get_solution_from_diff(other_board)
-        return self.get_score(solution, scoreboard)
+        turns = self.get_turns_from_diff(other_board)
+        return self.get_score(turns, scoreboard)
