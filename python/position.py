@@ -13,6 +13,11 @@ class Position:
     def __eq__(self, other: Position) -> bool:
         return self.row == other.row and self.col == other.col
 
+    def __lt__(self, other: Position):
+        if self.row != other.row:
+            return self.row < other.row
+        return self.col < other.col
+
     def __str__(self):
         return f"[{self.row}, {self.col}]"
 

@@ -1,3 +1,4 @@
+from __future__ import annotations
 import copy
 from enums import Shape, SolutionState
 from typing import List
@@ -11,6 +12,12 @@ class Turn:
 
     def __copy__(self):
         return Turn(self._position, self._letter)
+
+    def __lt__(self, other: Turn):
+        return self.position < other.position
+
+    def __eq__(self, other: Turn):
+        return self.position == other.position and self.letter == other.letter
 
     @property
     def position(self) -> Position:

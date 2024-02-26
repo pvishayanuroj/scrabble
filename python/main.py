@@ -25,7 +25,7 @@ def main():
 
     args = parser.parse_args()
 
-    selection = get_menu_selection()
+    selection = select_menu_option()
     if selection == MenuSelection.LOAD_GAME:
         game_names = get_games(args.games)
         game_name = select_game_name(game_names)
@@ -50,7 +50,7 @@ def generate_file_name(directory_path: str, game_name: str) -> str:
     return os.path.join(directory_path, filename)
 
 
-def get_menu_selection() -> MenuSelection:
+def select_menu_option() -> MenuSelection:
     print("")
     for index, option in enumerate(MenuSelection):
         print(f"{index + 1}) {option}")
