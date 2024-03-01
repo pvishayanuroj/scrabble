@@ -8,7 +8,7 @@ from position import Position
 from scoreboard import Scoreboard
 from size import Size
 from typing import List, Union
-from turns import Turns, Turn
+from turns import Placement, Turn
 from word_position import WordPosition
 
 
@@ -45,10 +45,10 @@ class Board:
     def copy(self):
         return Board(self._size.copy(), copy.deepcopy(self._state))
 
-    def copy_from_turns(self, turns: List[Turn]) -> Board:
+    def copy_and_apply_turn(self, turn: Turn) -> Board:
         new_board = self.copy()
-        for turn in turns:
-            new_board.set_tile(turn.position, turn.letter)
+        for placement in turn.placements:
+            new_board.set_tile(placement.position, placement.letter)
         return new_board
 
     def load_state(self, filepath: str):
@@ -308,40 +308,40 @@ class Board:
                 output += "\n"
         return output
 
-    def get_turns_from_diff(self, other: Board) -> List[Turn]:
-        turns = []
+    def get_placements_from_diff(self, other: Board) -> List[Placement]:
+        placements = []
         for position in BoardIterator(self._size):
             tile = self.get_tile(position)
             other_tile = other.get_tile(position)
             if tile != other_tile:
-                turns.append(Turn(position, tile))
-        return turns
+                placements.append(Placement(position, tile))
+        return placements
 
-    def get_score(self, turns: List[Turn], scoreboard: Scoreboard) -> int:
-        active_tiles = [turn.position for turn in turns]
-        if len(turns) == 1:
+    def get_score(self, turn: Turn, scoreboard: Scoreboard) -> int:
+        active_tiles = [placement.position for placement in turn.placements]
+        if turn.len == 1:
             score = 0
-            horizontal_word = self.get_chunk(turns[0].position, Shape.HORIZONTAL)
+            horizontal_word = self.get_chunk(turn.placements[0].position, Shape.HORIZONTAL)
             if len(horizontal_word.word) > 1:
                 score += scoreboard.score_word(horizontal_word, active_tiles)
-            vertical_word = self.get_chunk(turns[0].position, Shape.VERTICAL)
+            vertical_word = self.get_chunk(turn.placements[0].position, Shape.VERTICAL)
             if len(vertical_word.word) > 1:
                 score += scoreboard.score_word(vertical_word, active_tiles)
             if score == 0:
                 raise ValueError(f"Single turn solution does not form a word at least two letters long.")
             return score
         else:
-            is_horizontal = len(set(map(lambda x: x.position.row, turns))) == 1
+            is_horizontal = len(set(map(lambda x: x.position.row, turn.placements))) == 1
             shape = Shape.HORIZONTAL if is_horizontal else Shape.VERTICAL
             cross_shape = Shape.VERTICAL if is_horizontal else Shape.HORIZONTAL
-            word_position = self.get_chunk(turns[0].position, shape)
+            word_position = self.get_chunk(turn.placements[0].position, shape)
             score = scoreboard.score_word(word_position, active_tiles)
-            for turn in turns:
-                word_position = self.get_chunk(turn.position, cross_shape)
+            for placement in turn.placements:
+                word_position = self.get_chunk(placement.position, cross_shape)
                 if len(word_position.word) > 1:
                     score += scoreboard.score_word(word_position, active_tiles)
             return score
 
     def get_score_temp(self, other_board: Board, scoreboard: Scoreboard) -> int:
-        turns = self.get_turns_from_diff(other_board)
-        return self.get_score(turns, scoreboard)
+        placements = self.get_placements_from_diff(other_board)
+        return self.get_score(Turn(placements), scoreboard)

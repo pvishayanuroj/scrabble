@@ -8,11 +8,12 @@ from dictionary import Dictionary
 from enums import MenuSelection
 from scoreboard import Scoreboard
 from solution import Solution
+from turns import Turn
 from solver import solve
 from typing import List
 
 
-GAME_FILE_PATTERN = r'^(\w+)_\d{8}_\d{6}$'
+GAME_FILE_PATTERN = r'^(\w+)_\d{8}_\d{6}\.txt$'
 MAX_SOLUTIONS_TO_SHOW = 5
 
 def main():
@@ -37,9 +38,11 @@ def main():
         board.load_state(game_file)
         solution_boards = solve(dictionary, board, scoreboard, player_tiles)
         solutions = []
+        turns = []
         for solution in solution_boards:
-            turns = solution.get_turns_from_diff(board)
-            solutions.append(Solution(board, turns, scoreboard))
+            turns.append(Turn(solution.get_placements_from_diff(board)))
+        for turn in turns:
+            solutions.append(Solution(board, turn, scoreboard))
         selected_solution = select_solution(solutions)
         selected_solution.save(generate_file_name(args.games, game_name))
 

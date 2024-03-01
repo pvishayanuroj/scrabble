@@ -7,10 +7,10 @@ from typing import List
 
 
 class Solution:
-    def __init__(self, original_board: Board, turns: List[Turn], scoreboard: Scoreboard):
+    def __init__(self, original_board: Board, turn: Turn, scoreboard: Scoreboard):
         self._original_board = original_board
-        self._board = original_board.copy_from_turns(turns)
-        self._score = self._board.get_score(turns, scoreboard)
+        self._board = original_board.copy_and_apply_turn(turn)
+        self._score = self._board.get_score(turn, scoreboard)
 
     @property
     def score(self) -> int:
