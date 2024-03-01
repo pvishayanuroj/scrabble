@@ -29,8 +29,7 @@ def main():
 
     selection = select_menu_option()
     if selection == MenuSelection.NEW_GAME:
-        #player_tiles = get_player_tiles()
-        player_tiles = [letter for letter in 'AGAEETQ']
+        player_tiles = get_player_tiles()
         scoreboard = Scoreboard(args.board, args.points)
         dictionary = Dictionary(args.dictionary, args.omit)
         board = Board(scoreboard.size)
@@ -47,7 +46,8 @@ def main():
         selected_solution = select_solution(truncated_solutions)
         if not selected_solution:
             return
-        #selected_solution.save(generate_file_name(args.games, game_name))
+        game_name = input("Enter a game name: ")
+        selected_solution.save(generate_file_name(args.games, game_name))
     elif selection == MenuSelection.LOAD_GAME:
         game_names = get_games(args.games)
         game_name = select_game_name(game_names)
