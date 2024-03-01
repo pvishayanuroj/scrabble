@@ -8,7 +8,7 @@ from dictionary import Dictionary
 from enums import MenuSelection
 from scoreboard import Scoreboard
 from solution import Solution
-from turns import Turn
+from turns import Turn, dedup_turns
 from solver import solve
 from typing import List
 
@@ -41,7 +41,8 @@ def main():
         turns = []
         for solution in solution_boards:
             turns.append(Turn(solution.get_placements_from_diff(board)))
-        for turn in turns:
+        unique_turns = dedup_turns(turns)
+        for turn in unique_turns:
             solutions.append(Solution(board, turn, scoreboard))
         selected_solution = select_solution(solutions)
         selected_solution.save(generate_file_name(args.games, game_name))
