@@ -10,7 +10,7 @@ from scoreboard import Scoreboard
 from solution import Solution
 from turns import Turn, dedup_turns
 from solver import solve
-from typing import List
+from typing import List, Union
 
 
 GAME_FILE_PATTERN = r'^(\w+)_\d{8}_\d{6}\.txt$'
@@ -19,10 +19,11 @@ MAX_SOLUTIONS_TO_SHOW = 5
 def main():
     parser = argparse.ArgumentParser(description="A command line word puzzle solver.")
 
-    parser.add_argument("-d", "--dictionary", default="dictionaries/279k-dictionary.txt", help="Dictionary file path (default: %(default)s)")
-    parser.add_argument("-b", "--board", default="boards/official.txt", help="Board file path (default: %(default)s)")
-    parser.add_argument("-p", "--points", default="points.txt", help="Points file path (default: %(default)s)")
-    parser.add_argument("-g", "--games", default="games/", help="Games directory path (default: %(default)s)")
+    parser.add_argument("--dictionary", default="dictionaries/279k-dictionary.txt", help="Dictionary file path (default: %(default)s)")
+    parser.add_argument("--omit", default="dictionaries/omit.txt", help="List of words to omit from dictionary (default: %(default)s)")
+    parser.add_argument("--board", default="boards/official.txt", help="Board file path (default: %(default)s)")
+    parser.add_argument("--points", default="points.txt", help="Points file path (default: %(default)s)")
+    parser.add_argument("--games", default="games/", help="Games directory path (default: %(default)s)")
 
     args = parser.parse_args()
 
@@ -33,7 +34,7 @@ def main():
         game_file = get_latest_game_file(args.games, game_name)
         player_tiles = get_player_tiles()
         scoreboard = Scoreboard(args.board, args.points)
-        dictionary = Dictionary(args.dictionary)
+        dictionary = Dictionary(args.dictionary, args.omit)
         board = Board(scoreboard.get_size())
         board.load_state(game_file)
         solution_boards = solve(dictionary, board, scoreboard, player_tiles)
@@ -47,6 +48,8 @@ def main():
         solutions.sort(reverse=True)
         truncated_solutions = solutions[:MAX_SOLUTIONS_TO_SHOW]
         selected_solution = select_solution(truncated_solutions)
+        if not selected_solution:
+            return
         selected_solution.save(generate_file_name(args.games, game_name))
 
 
@@ -118,7 +121,7 @@ def get_player_tiles() -> List[str]:
             print("Invalid tile input")
 
 
-def select_solution(solutions: List[Solution]) -> Solution:
+def select_solution(solutions: List[Solution]) -> Union[Solution, None]:
     print(f"Generated {len(solutions)} solutions")
     for index, solution in enumerate(solutions):
         print(f"\n---------Solution {index + 1}-----------\n{solution}")
@@ -127,6 +130,9 @@ def select_solution(solutions: List[Solution]) -> Solution:
             user_input = input("\nMake a selection: ")
             value = int(user_input)
             return solutions[value - 1]
+        except KeyboardInterrupt:
+            print("Exiting.")
+            return None
         except:
             print("Invalid input. Select a valid option.")
 

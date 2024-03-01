@@ -1,21 +1,33 @@
-from typing import List
+from typing import List, Set
 
 
 class Dictionary:
-    def __init__(self, filepath: str):
+    def __init__(self, filepath: str, omit_filepath=None):
         self._words = set()
         self._substrings = set()
-        self.load(filepath)
+        omitted_words = self._load_omitted_words(omit_filepath) if omit_filepath else set()
+        self._load(filepath, omitted_words)
 
-    def load(self, filepath: str):
+    def _load_omitted_words(self, filepath: str) -> Set[str]:
+        unique_words = set(self._read_file(filepath))
+        return unique_words
+
+    def _load(self, filepath: str, omitted_words: Set[str]):
+        for word in self._read_file(filepath):
+            if word not in omitted_words and word not in self._words:
+                self._words.add(word)
+        self.preprocess()
+        print(f"Loaded {len(self._words)} words")
+        print(f"Preprocessed {len(self._substrings)} substrings")
+
+    def _read_file(self, filepath: str) -> List[str]:
+        words = []
         with open(filepath, 'r') as file:
             for line in file.readlines():
                 if line == '':
                     continue
-                self._words.add(line.strip().upper())
-        self.preprocess()
-        print(f"Loaded {len(self._words)} words")
-        print(f"Preprocessed {len(self._substrings)} substrings")
+                words.append(line.strip().upper())
+        return words
 
     def preprocess(self):
         for word in self._words:
