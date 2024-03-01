@@ -44,7 +44,9 @@ def main():
         unique_turns = dedup_turns(turns)
         for turn in unique_turns:
             solutions.append(Solution(board, turn, scoreboard))
-        selected_solution = select_solution(solutions)
+        solutions.sort(reverse=True)
+        truncated_solutions = solutions[:MAX_SOLUTIONS_TO_SHOW]
+        selected_solution = select_solution(truncated_solutions)
         selected_solution.save(generate_file_name(args.games, game_name))
 
 
@@ -118,8 +120,7 @@ def get_player_tiles() -> List[str]:
 
 def select_solution(solutions: List[Solution]) -> Solution:
     print(f"Generated {len(solutions)} solutions")
-    sorted_solutions = sorted(solutions, reverse=True)[:MAX_SOLUTIONS_TO_SHOW]
-    for index, solution in enumerate(sorted_solutions):
+    for index, solution in enumerate(solutions):
         print(f"\n---------Solution {index + 1}-----------\n{solution}")
     while True:
         try:
