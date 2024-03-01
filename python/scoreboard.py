@@ -1,4 +1,5 @@
 from typing import List
+from constants import MAX_LENGTH_WORD, MAX_LENGTH_WORD_SCORE
 from enums import Direction, Shape, Tile
 from iterators import BoardIterator
 from position import Position
@@ -69,6 +70,8 @@ class Scoreboard:
             total += (letter_value * letter_multiplier)
             curr_position = curr_position.move(direction)
         total *= word_multipler
+        if len(word_position.word) == MAX_LENGTH_WORD:
+            total += MAX_LENGTH_WORD_SCORE
         return total
 
     @property
