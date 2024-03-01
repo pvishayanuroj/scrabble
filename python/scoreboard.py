@@ -70,7 +70,7 @@ class Scoreboard:
             total += (letter_value * letter_multiplier)
             curr_position = curr_position.move(direction)
         total *= word_multipler
-        if len(word_position.word) == MAX_LENGTH_WORD:
+        if len(active_tiles) == MAX_LENGTH_WORD:
             total += MAX_LENGTH_WORD_SCORE
         return total
 
