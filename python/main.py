@@ -9,7 +9,7 @@ from enums import MenuSelection
 from scoreboard import Scoreboard
 from solution import Solution
 from turns import Turn, dedup_turns
-from solver import solve
+from solver import solve, solve_first_turn
 from typing import List, Union
 
 
@@ -28,16 +28,36 @@ def main():
     args = parser.parse_args()
 
     selection = select_menu_option()
-    if selection == MenuSelection.LOAD_GAME:
+    if selection == MenuSelection.NEW_GAME:
+        #player_tiles = get_player_tiles()
+        player_tiles = [letter for letter in 'AGAEETQ']
+        scoreboard = Scoreboard(args.board, args.points)
+        dictionary = Dictionary(args.dictionary, args.omit)
+        board = Board(scoreboard.size)
+        solution_boards = solve_first_turn(dictionary, board, scoreboard, player_tiles)
+        solutions = []
+        turns = []
+        for solution in solution_boards:
+            turns.append(Turn(solution.get_placements_from_diff(board)))
+        unique_turns = dedup_turns(turns)
+        for turn in unique_turns:
+            solutions.append(Solution(board, turn, scoreboard))
+        solutions.sort(reverse=True)
+        truncated_solutions = solutions[:MAX_SOLUTIONS_TO_SHOW]
+        selected_solution = select_solution(truncated_solutions)
+        if not selected_solution:
+            return
+        #selected_solution.save(generate_file_name(args.games, game_name))
+    elif selection == MenuSelection.LOAD_GAME:
         game_names = get_games(args.games)
         game_name = select_game_name(game_names)
         game_file = get_latest_game_file(args.games, game_name)
         player_tiles = get_player_tiles()
         scoreboard = Scoreboard(args.board, args.points)
         dictionary = Dictionary(args.dictionary, args.omit)
-        board = Board(scoreboard.get_size())
+        board = Board(scoreboard.size)
         board.load_state(game_file)
-        solution_boards = solve(dictionary, board, scoreboard, player_tiles)
+        solution_boards = solve(dictionary, board, player_tiles)
         solutions = []
         turns = []
         for solution in solution_boards:

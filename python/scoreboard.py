@@ -1,5 +1,6 @@
 from typing import List
 from enums import Direction, Shape, Tile
+from iterators import BoardIterator
 from position import Position
 from size import Size
 from word_position import WordPosition
@@ -37,6 +38,12 @@ class Scoreboard:
     def get_tile(self, position: Position) -> Tile:
         return self._board[position.row][position.col]
 
+    def get_star_position(self) -> Position:
+        for position in BoardIterator(self._size):
+            if self.get_tile(position) == Tile.STAR:
+                return position
+        raise ValueError("No star tile found.")
+
     def score_word(self, word_position: WordPosition, active_tiles: List[Position]) -> int:
         """Returns the point value of the word starting at the given position.
 
@@ -64,5 +71,6 @@ class Scoreboard:
         total *= word_multipler
         return total
 
-    def get_size(self) -> Size:
+    @property
+    def size(self) -> Size:
         return self._size

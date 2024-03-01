@@ -45,11 +45,14 @@ class MoveStatus(Enum):
 
 
 class MenuSelection(IntEnum):
-    LOAD_GAME = 1,
-    LOAD_FROM_FILE = 2,
+    NEW_GAME = 1,
+    LOAD_GAME = 2,
+    LOAD_FROM_FILE = 3,
     QUIT = 4,
 
     def __str__(self):
+        if self == MenuSelection.NEW_GAME:
+            return "New game"
         if self == MenuSelection.LOAD_GAME:
             return "Load game"
         if self == MenuSelection.LOAD_FROM_FILE:
