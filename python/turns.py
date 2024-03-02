@@ -63,31 +63,3 @@ def dedup_turns(turns: List[Turn]) -> List[Turn]:
         if turn not in unique_turns:
             unique_turns.append(turn)
     return unique_turns
-
-
-# class TurnsFoo:
-#     def __init__(self, turns):
-#         self._turns = turns
-#         self._state = SolutionState.NO_LETTERS
-
-#     def __copy__(self):
-#         return Turn(copy.deepcopy(self._turns))
-
-#     @property
-#     def turns(self) -> List[Placement]:
-#         return self._turns
-
-#     def len(self) -> int:
-#         return len(self._turns)
-
-#     def add(self, turn: Placement):
-#         self._turns.append(turn)
-
-#     def get_shape(self) -> Shape:
-#         rows = set(map(lambda x: x.position.row, self._turns))
-#         cols = set(map(lambda x: x.position.col, self._turns))
-#         if len(rows) == 1 and len(cols) != 1:
-#             return Shape.HORIZONTAL
-#         if len(rows) != 1 and len(cols) == 1:
-#             return Shape.VERTICAL
-#         raise ValueError(f"Cannot get shape. Distinct rows: {len(rows)}, distinct cols {len(cols)}")

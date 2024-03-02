@@ -87,7 +87,7 @@ def solve_helper(dictionary: Dictionary, board: Board, letters: List[str], moves
     """Recursive solver method."""
     boards = []
     if solution_state == SolutionState.NO_LETTERS:
-        next_moves = board.get_first_tile_moves()
+        next_moves = board.get_first_tile_positions()
         for (letter, next_letters) in NextLetterIterator(letters):
             for next_move in next_moves:
                 (result, new_board) = board.is_first_move_valid(dictionary, next_move, letter)

@@ -26,8 +26,9 @@ class Direction(Enum):
 
 class Shape(Enum):
     """The shape of the word that the current form is taking."""
-    VERTICAL = 1,
-    HORIZONTAL = 2,
+    UNSPECIFIED_SHAPE = 1,
+    VERTICAL = 2,
+    HORIZONTAL = 3,
 
 
 class SolutionState(Enum):
@@ -35,6 +36,12 @@ class SolutionState(Enum):
     FIRST_LETTER = 2,
     VERTICAL = 3,
     HORIZONTAL = 4,
+
+
+class TurnStateValue(Enum):
+    NO_PLACEMENTS = 1,
+    FIRST_PLACEMENT = 2,
+    MID_TURN = 3,
 
 
 class MoveStatus(Enum):

@@ -3,13 +3,15 @@ import argparse
 import datetime
 import os
 import re
+import time
 from board import Board
 from dictionary import Dictionary
 from enums import MenuSelection
 from scoreboard import Scoreboard
 from solution import Solution
-from turns import Turn, dedup_turns
+from turns import Placement, Turn, dedup_turns
 from solver import solve, solve_first_turn
+from solver2 import solve as solve2
 from typing import List, Union
 
 
@@ -27,12 +29,13 @@ def main():
 
     args = parser.parse_args()
 
-    selection = select_menu_option()
+    #selection = select_menu_option()
+    selection = MenuSelection.LOAD_GAME
     if selection == MenuSelection.NEW_GAME:
         player_tiles = get_player_tiles()
         scoreboard = Scoreboard(args.board, args.points)
         dictionary = Dictionary(args.dictionary, args.omit)
-        board = Board(scoreboard.size)
+        board = Board(scoreboard.size, dictionary)
         solution_boards = solve_first_turn(dictionary, board, scoreboard, player_tiles)
         solutions = []
         turns = []
@@ -49,14 +52,33 @@ def main():
         game_name = input("Enter a game name: ")
         selected_solution.save(generate_file_name(args.games, game_name))
     elif selection == MenuSelection.LOAD_GAME:
-        game_names = get_games(args.games)
-        game_name = select_game_name(game_names)
-        game_file = get_latest_game_file(args.games, game_name)
-        player_tiles = get_player_tiles()
+        #game_names = get_games(args.games)
+        #game_name = select_game_name(game_names)
+        #game_file = get_latest_game_file(args.games, game_name)
+        #player_tiles = get_player_tiles()
+        game_file = '/Users/pvishayanuroj/projects/scrabble/games/game2_20240301_000000.txt'
+        player_tiles = [f for f in 'GETHUTO']
         scoreboard = Scoreboard(args.board, args.points)
         dictionary = Dictionary(args.dictionary, args.omit)
-        board = Board(scoreboard.size)
+        board = Board(scoreboard.size, dictionary)
         board.load_state(game_file)
+
+
+        start_time = time.time()
+        solution_turns = solve2(board, scoreboard, dictionary, player_tiles)
+        print(f"Generated {len(solution_turns)} solutions in {(time.time() - start_time):.2f} secs")
+
+        solutions: list[Solution] = []
+        for turn in solution_turns:           
+            placements = [Placement(position, letter) for position, letter in turn._placements.items()]
+            original_turn = Turn(placements)
+            solution_board = board.copy_and_apply_turn(original_turn)
+            is_valid = solution_board.is_state_valid(dictionary)
+            if is_valid[0]:
+                solutions.append(Solution(board, original_turn, scoreboard))
+        print(f"Pruned down to {len(solutions)} solutions")
+
+        print("OLD RUN")
         solution_boards = solve(dictionary, board, player_tiles)
         solutions = []
         turns = []
@@ -65,6 +87,7 @@ def main():
         unique_turns = dedup_turns(turns)
         for turn in unique_turns:
             solutions.append(Solution(board, turn, scoreboard))
+        print(f"DEDUP to {len(solutions)} solutions")
         solutions.sort(reverse=True)
         truncated_solutions = solutions[:MAX_SOLUTIONS_TO_SHOW]
         selected_solution = select_solution(truncated_solutions)

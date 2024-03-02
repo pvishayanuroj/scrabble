@@ -24,8 +24,9 @@ class MoveResult:
 
 
 class Board:
-    def __init__(self, size: Size, state = None):
+    def __init__(self, size: Size, dictionary: Dictionary, state = None):
         self._size = size
+        self._dictionary = dictionary
         if state:
             self._state = state
         else:
@@ -42,8 +43,15 @@ class Board:
     def size(self) -> Size:
         return self._size
 
+    def is_empty(self) -> bool:
+        """Returns whether or not there are no letter tiles on the board."""
+        for position in BoardIterator(self._size):
+            if self.get_tile(position) != '':
+                return False
+        return True
+
     def copy(self):
-        return Board(self._size.copy(), copy.deepcopy(self._state))
+        return Board(self._size.copy(), self._dictionary, copy.deepcopy(self._state))
 
     def copy_and_apply_turn(self, turn: Turn) -> Board:
         new_board = self.copy()
@@ -75,6 +83,12 @@ class Board:
     def get_tile(self, position: Position) -> str:
         return self._state[position.row][position.col]
 
+    def get_tile_checked(self, position: Position) -> Union[None, str]:
+        """Checks if the tile is within bounds, returning None if not. Otherwise returns the tile."""
+        if self._size.is_within_bounds(position):
+            return self.get_tile(position)
+        return None
+
     def set_tile(self, position: Position, letter: str):
         if self.is_tile_filled(position):
             raise ValueError(f"Cannot set non-empty tile: {position}.")
@@ -87,7 +101,33 @@ class Board:
             return self.get_tile(adjacent_position)
         return None
 
-    def get_next_empty_tile(self, position: Position, direction: Direction) -> Union[None, Position]:
+    def get_adjacent_tiles_until_empty(self, position: Position, direction: Direction) -> str:
+        """Traverses in the given direction until the end of the board or an empty tile.
+        
+        Returns the string formed by this traversal. Note that the returned string is in always
+        left-to-right or up-to-down order even if the traversal direction is left or up.
+        """
+        output = ''
+        curr_position = position
+        while True:
+            curr_tile = self.get_tile_checked(curr_position)
+            if curr_tile == None or curr_tile == '':
+                break
+            output += curr_tile
+        if direction == Direction.LEFT or direction == Direction.UP:
+            return output[::-1]
+        return output
+
+    def get_last_non_empty_tile(self, position: Position, direction: Direction) -> Position:
+        """Gets the N-most tile that is non-empty and contiguous from the given position."""
+        curr_position = position
+        while True:
+            next_position = curr_position.move(direction)
+            if not self._size.is_within_bounds(next_position) or self.is_tile_empty(next_position):
+                return curr_position
+            curr_position = next_position
+
+    def get_next_empty_tile(self, position: Position, direction: Direction) -> None | Position:
         """Returns the next empty tile in the given direction. Returns None if no empty tiles exist."""
         curr_position = position
         while True:
@@ -118,7 +158,8 @@ class Board:
         # Check that all tiles are next to at least one other tile.
         for position in BoardIterator(self._size):
             if self.is_tile_filled(position) and self.are_adjacent_tiles_empty(position):
-                return False
+                print("FOOO")
+                return (False, [])
         chunks = []
         # Check rows.
         for row in self._state:
@@ -132,15 +173,24 @@ class Board:
             return (False, invalid_words)
         return (True, [])
 
-    def get_first_tile_moves(self) -> List[Position]:
+    def get_first_tile_positions(self) -> List[Position]:
         """The possible tiles that a letter can be placed to start the turn.
 
-        Possible tiles are empty but are next to existing letter tiles.
+        This assumes a non-empty board.
+        Returns a list of all empty tile positions that are next to non-empty tile positions.
         """
         positions = []
         for position in BoardIterator(self._size):
             if self.is_tile_empty(position) and self.is_any_adjacent_tile_filled(position):
                 positions.append(position)
+        return positions
+
+    def get_second_tile_positions(self, first_tile_position: Position) -> List[Position]:
+        positions = []
+        for direction in Direction:
+            next_empty_position = self.get_next_empty_tile(first_tile_position, direction)
+            if next_empty_position != None:
+                positions.append(next_empty_position)
         return positions
 
     def get_next_tile_moves(self, previous_moves: List[Position]) -> List[Position]:
@@ -279,6 +329,34 @@ class Board:
             return WordPosition(Position(min_row, position.col), word, shape)
         else:
             raise ValueError(f"Invalid shape: {shape}")
+
+    def get_word_from_placement(self, placement: Placement, shape: Shape) -> tuple[str, Position, Position]:
+        """Assumes the given placement and returns the word formed with the given shape."""
+        if shape == Shape.HORIZONTAL:
+            start = self.get_last_non_empty_tile(placement.position, Direction.LEFT)
+            end = self.get_last_non_empty_tile(placement.position, Direction.RIGHT)
+            word = ''
+            for col in range(start.col, end.col + 1):
+                position = Position(placement.position.row, col)
+                tile = self.get_tile(position)
+                if tile == '':
+                    word += placement.letter
+                else:
+                    word += tile
+            return (word, start, end)
+        if shape == Shape.VERTICAL:
+            start = self.get_last_non_empty_tile(placement.position, Direction.UP)
+            end = self.get_last_non_empty_tile(placement.position, Direction.DOWN)
+            word = ''
+            for row in range(start.row, end.row + 1):
+                position = Position(row, placement.position.col)
+                tile = self.get_tile(position)
+                if tile == '':
+                    word += placement.letter
+                else:
+                    word += tile                
+            return (word, start, end)
+        raise RuntimeError(f"Invalid shape: {shape}")
 
     def get_column(self, index) -> List[str]:
         col = []

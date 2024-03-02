@@ -1,4 +1,5 @@
 from __future__ import annotations
+from constants import MAX_BOARD_SIZE
 from enums import Direction
 
 
@@ -17,6 +18,9 @@ class Position:
         if self.row != other.row:
             return self.row < other.row
         return self.col < other.col
+
+    def __hash__(self):
+        return self.row * MAX_BOARD_SIZE + self.col
 
     def __str__(self):
         return f"[{self.row}, {self.col}]"
