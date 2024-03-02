@@ -45,3 +45,17 @@ test4
 
 Generated 3221 boards in 13.55 secs
 Prune down to 828 boards in 1.18 secs
+
+Removed board copying in favor of using the turn structure to track the tile placements. Ended up generating more solutions than the old approach.
+
+test3
+
+Generated 1870 solutions in 0.70 secs
+Pruned down to 323 solutions in 0.96 secs
+DEDUP to 203 solutions. TOTAL: 1.66 secs
+
+test4
+
+Generated 9846 solutions in 3.95 secs
+Pruned down to 970 solutions in 4.65 secs
+DEDUP to 479 solutions. TOTAL: 8.64 secs

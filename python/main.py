@@ -66,7 +66,8 @@ def main():
 
         start_time = time.time()
         solution_turns = solve2(board, scoreboard, dictionary, player_tiles)
-        print(f"Generated {len(solution_turns)} solutions in {(time.time() - start_time):.2f} secs")
+        solution_generation_time = time.time()
+        print(f"Generated {len(solution_turns)} solutions in {(solution_generation_time - start_time):.2f} secs")
 
         #new_solutions: list[Solution] = []
         new_turns = []
@@ -78,7 +79,7 @@ def main():
             if is_valid[0]:
                 new_turns.append(original_turn)
                 #new_solutions.append(Solution(board, original_turn, scoreboard))
-        print(f"Pruned down to {len(new_turns)} solutions")
+        print(f"Pruned down to {len(new_turns)} solutions in {(time.time() - solution_generation_time):.2f} secs")
         new_unique_turns = dedup_turns(new_turns)
         print(f"DEDUP to {len(new_unique_turns)} solutions. TOTAL: {(time.time() - start_time):.2f} secs")
         new_solutions = []
