@@ -184,15 +184,7 @@ class Board:
             if self.is_tile_empty(position) and self.is_any_adjacent_tile_filled(position):
                 positions.append(position)
         return positions
-
-    def get_second_tile_positions(self, first_tile_position: Position) -> List[Position]:
-        positions = []
-        for direction in Direction:
-            next_empty_position = self.get_next_empty_tile(first_tile_position, direction)
-            if next_empty_position != None:
-                positions.append(next_empty_position)
-        return positions
-
+    
     def get_next_tile_moves(self, previous_moves: List[Position]) -> List[Position]:
         """The possible tiles that a second or later letter can be placed.
 
