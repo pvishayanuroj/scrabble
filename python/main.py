@@ -52,12 +52,12 @@ def main():
         game_name = input("Enter a game name: ")
         selected_solution.save(generate_file_name(args.games, game_name))
     elif selection == MenuSelection.LOAD_GAME:
-        #game_names = get_games(args.games)
-        #game_name = select_game_name(game_names)
-        #game_file = get_latest_game_file(args.games, game_name)
-        #player_tiles = get_player_tiles()
-        game_file = '/Users/pvishayanuroj/projects/scrabble/games/game2_20240301_000000.txt'
-        player_tiles = [f for f in 'GETHUTO']
+        game_names = get_games(args.games)
+        game_name = select_game_name(game_names)
+        game_file = get_latest_game_file(args.games, game_name)
+        player_tiles = get_player_tiles()
+        #game_file = '/Users/pvishayanuroj/projects/scrabble/games/game3_20240301_000000.txt'
+        #player_tiles = [f for f in 'NRALEFI']
         scoreboard = Scoreboard(args.board, args.points)
         dictionary = Dictionary(args.dictionary, args.omit)
         board = Board(scoreboard.size, dictionary)
@@ -100,6 +100,8 @@ def main():
             solutions.append(Solution(board, turn, scoreboard))
         print(f"DEDUP to {len(solutions)} solutions. TOTAL: {(time.time() - start_time):.2f} secs")
         solutions.sort(reverse=True)
+        for index, solution in enumerate(solutions[:MAX_SOLUTIONS_TO_SHOW]):
+            print(f"\n---------Solution {index + 1}-----------\n{solution}")
 
         missing_turns2 = []
         for turn in unique_turns:
@@ -117,10 +119,10 @@ def main():
                 missing_turns.append(turn)
         print(f"{len(missing_turns)} turns in NEW not in OLD")
 
-        # for turn in missing_turns:
-        #     s = Solution(board, turn, scoreboard)
-        #     print(s)
-        #     break
+        for turn in missing_turns:
+            s = Solution(board, turn, scoreboard)
+            print(s)
+            break
 
         # truncated_solutions = solutions[:MAX_SOLUTIONS_TO_SHOW]
         # selected_solution = select_solution(truncated_solutions)
