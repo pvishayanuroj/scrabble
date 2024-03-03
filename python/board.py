@@ -11,6 +11,7 @@ from scoreboard import Scoreboard
 from size import Size
 from typing import List, Union
 from turns import Turn
+from turns2 import Turn as Turn2
 from word_position import WordPosition
 
 
@@ -58,7 +59,13 @@ class Board:
     def copy_and_apply_turn(self, turn: Turn) -> Board:
         new_board = self.copy()
         for placement in turn.placements:
-            new_board.set_tile(placement.position, placement.letter)
+            new_board.set_tile(placement)
+        return new_board
+
+    def copy_and_apply_turn2(self, turn: Turn2) -> Board:
+        new_board = self.copy()
+        for placement in turn.placements:
+            new_board.set_tile(placement)
         return new_board
 
     def load_state(self, filepath: str):
@@ -91,10 +98,10 @@ class Board:
             return self.get_tile(position)
         return None
 
-    def set_tile(self, position: Position, letter: str):
-        if self.is_tile_filled(position):
-            raise ValueError(f"Cannot set non-empty tile: {position}.")
-        self._state[position.row][position.col] = letter
+    def set_tile(self, placement: Placement):
+        if self.is_tile_filled(placement.position):
+            raise ValueError(f"Cannot set non-empty tile: {placement.position}.")
+        self._state[placement.position.row][placement.position.col] = placement.letter
 
     def get_adjacent_tile(self, position: Position, direction: Direction) -> Union[None, str]:
         """Returns the value of the adjacent tile or None if the tile is out of bounds."""
@@ -105,7 +112,7 @@ class Board:
 
     def get_adjacent_tiles_until_empty(self, position: Position, direction: Direction) -> str:
         """Traverses in the given direction until the end of the board or an empty tile.
-        
+
         Returns the string formed by this traversal. Note that the returned string is in always
         left-to-right or up-to-down order even if the traversal direction is left or up.
         """
@@ -186,7 +193,7 @@ class Board:
             if self.is_tile_empty(position) and self.is_any_adjacent_tile_filled(position):
                 positions.append(position)
         return positions
-    
+
     def get_next_tile_moves(self, previous_moves: List[Position]) -> List[Position]:
         """The possible tiles that a second or later letter can be placed.
 
@@ -237,7 +244,7 @@ class Board:
 
     def is_first_move_valid(self, dictionary: Dictionary, position: Position, letter: str) -> tuple[MoveStatus, Board]:
         new_board = self.copy()
-        new_board.set_tile(position, letter)
+        new_board.set_tile(Placement(position, letter))
         horizontal_chunk = new_board.get_chunk(position, Shape.HORIZONTAL)
         vertical_chunk = new_board.get_chunk(position, Shape.VERTICAL)
         is_substring = dictionary.is_substring(horizontal_chunk.word) or dictionary.is_substring(vertical_chunk.word)
@@ -253,7 +260,7 @@ class Board:
 
     def is_move_valid(self, dictionary: Dictionary, position: Position, letter: str, solution_state: SolutionState) -> tuple[MoveStatus, Board]:
         new_board = self.copy()
-        new_board.set_tile(position, letter)
+        new_board.set_tile(Placement(position, letter))
         if solution_state == SolutionState.HORIZONTAL:
             vertical_chunk = new_board.get_chunk(position, Shape.VERTICAL)
             if len(vertical_chunk.word) > 1 and not dictionary.is_word(vertical_chunk.word):
@@ -348,7 +355,7 @@ class Board:
                 if tile == '':
                     word += placement.letter
                 else:
-                    word += tile                
+                    word += tile
             return (word, Range(start, end))
         raise RuntimeError(f"Invalid shape: {shape}")
 

@@ -14,7 +14,7 @@ from turns import Turn, dedup_turns
 from turns2 import Turn as Turn2
 from solver import solve, solve_first_turn
 from solver2 import solve as solve2
-from typing import List, Union
+from typing import Union
 
 
 GAME_FILE_PATTERN = r'^(\w+)_\d{8}_\d{6}\.txt$'
@@ -39,12 +39,10 @@ def main():
         dictionary = Dictionary(args.dictionary, args.omit)
         board = Board(scoreboard.size, dictionary)
 
-        start_time = time.time()
-        new_solution_turns = solve2(board, scoreboard, dictionary, player_tiles)
-        solution_generation_time = time.time()
-        print(f"Generated {len(new_solution_turns)} solutions in {(solution_generation_time - start_time):.2f} secs")
-        new_unique_turns = validate_and_dedup_turns(board, dictionary, new_solution_turns)
-        print(f"PRUNE and DEDUP to {len(new_unique_turns)} solutions. TOTAL: {(time.time() - start_time):.2f} secs")
+        #start_time = time.time()
+        new_unique_turns = solve2(board, scoreboard, dictionary, player_tiles)
+        #solution_generation_time = time.time()
+        #print(f"PRUNE and DEDUP to {len(new_unique_turns)} solutions. TOTAL: {(solution_generation_time - start_time):.2f} secs")
 
         solution_boards = solve_first_turn(dictionary, board, scoreboard, player_tiles)
         solutions = []
@@ -69,24 +67,24 @@ def main():
         #game_name = select_game_name(game_names)
         #game_file = get_latest_game_file(args.games, game_name)
         #player_tiles = get_player_tiles()
-        game_file = '/Users/pvishayanuroj/projects/scrabble/games/game2_20240301_000000.txt'
-        player_tiles = [f for f in 'GETHUTO']
+        game_file = '/Users/pvishayanuroj/projects/scrabble/games/game3_20240301_000000.txt'
+        player_tiles = [f for f in 'NRALEFI']
         scoreboard = Scoreboard(args.board, args.points)
         dictionary = Dictionary(args.dictionary, args.omit)
         board = Board(scoreboard.size, dictionary)
         board.load_state(game_file)
 
 
-        start_time = time.time()
-        solution_turns = solve2(board, scoreboard, dictionary, player_tiles)
-        solution_generation_time = time.time()
-        print(f"Generated {len(solution_turns)} solutions in {(solution_generation_time - start_time):.2f} secs")
-        new_unique_turns = validate_and_dedup_turns(board, dictionary, solution_turns)
-        print(f"PRUNE and DEDUP to {len(new_unique_turns)} solutions. TOTAL: {(time.time() - start_time):.2f} secs")
+        #start_time = time.time()
+        new_unique_turns = solve2(board, scoreboard, dictionary, player_tiles)
+        #solution_generation_time = time.time()
+        print(f"Generated {len(new_unique_turns)} solutions.")
+        #new_unique_turns = validate_and_dedup_turns(board, dictionary, solution_turns)
+        #print(f"PRUNE and DEDUP to {len(new_unique_turns)} solutions. TOTAL: {(time.time() - start_time):.2f} secs")
         new_solutions = []
-        for turn in new_unique_turns:
-            new_solutions.append(Solution(board, turn, scoreboard))
-        new_solutions.sort(reverse=True)
+        # for turn in new_unique_turns:
+        #     new_solutions.append(Solution(board, turn, scoreboard))
+        # new_solutions.sort(reverse=True)
         # for index, solution in enumerate(new_solutions[:MAX_SOLUTIONS_TO_SHOW]):
         #     print(f"\n---------Solution {index + 1}-----------\n{solution}")
 
@@ -114,21 +112,12 @@ def main():
         # selected_solution.save(generate_file_name(args.games, game_name))
 
 
-def validate_and_dedup_turns(board: Board, dictionary: Dictionary, turns: list[Turn2]) -> list[Turn2]:
-    valid_turns: list[Turn2] = []
-    for turn in turns:
-        placements = [Placement(position, letter) for position, letter in turn._placements.items()]
-        original_turn = Turn(placements)
-        solution_board = board.copy_and_apply_turn(original_turn)
-        is_valid = solution_board.is_state_valid(dictionary)
-        if is_valid[0]:
-            valid_turns.append(original_turn)
-    return dedup_turns(valid_turns)
-
-
-def compare_solutions(board: Board, scoreboard: Scoreboard, old_turns: List[Turn], new_turns: List[Turn]):
-    missing_new_turns = []
+def compare_solutions(board: Board, scoreboard: Scoreboard, old_turns: list[Turn], new_turns: list[Turn2]):
+    converted_new_turns = []
     for turn in new_turns:
+        converted_new_turns.append(Turn(turn.placements))
+    missing_new_turns = []
+    for turn in converted_new_turns:
         if turn not in old_turns:
             missing_new_turns.append(turn)
     print(f"{len(missing_new_turns)} turns in OLD not in NEW")
@@ -138,7 +127,7 @@ def compare_solutions(board: Board, scoreboard: Scoreboard, old_turns: List[Turn
         break
 
     missing_old_turns = []
-    for turn in new_turns:
+    for turn in converted_new_turns:
         if turn not in old_turns:
             missing_old_turns.append(turn)
     print(f"{len(missing_old_turns)} turns in NEW not in OLD")
@@ -168,7 +157,7 @@ def select_menu_option() -> MenuSelection:
             print("Invalid input. Select a valid option.")
 
 
-def get_games(directory_path: str) -> List[str]:
+def get_games(directory_path: str) -> list[str]:
     games = set()
     for filename in os.listdir(directory_path):
         match = re.match(GAME_FILE_PATTERN, filename)
@@ -177,7 +166,7 @@ def get_games(directory_path: str) -> List[str]:
     return sorted(list(games))
 
 
-def select_game_name(game_names: List[str]) -> str:
+def select_game_name(game_names: list[str]) -> str:
     print("\nAvailable games:")
     for index, option in enumerate(game_names):
         print(f"{index + 1}) {option}")
@@ -199,7 +188,7 @@ def get_latest_game_file(directory_path: str, game_name: str) -> str:
     return sorted(files, reverse=True)[0]
 
 
-def get_player_tiles() -> List[str]:
+def get_player_tiles() -> list[str]:
     pattern = r'^[a-zA-Z]+$'
     while True:
         user_input = input("\nEnter tiles: ")
@@ -217,7 +206,7 @@ def get_player_tiles() -> List[str]:
             print("Invalid tile input")
 
 
-def select_solution(solutions: List[Solution]) -> Union[Solution, None]:
+def select_solution(solutions: list[Solution]) -> Union[Solution, None]:
     print(f"Generated {len(solutions)} solutions")
     for index, solution in enumerate(solutions):
         print(f"\n---------Solution {index + 1}-----------\n{solution}")

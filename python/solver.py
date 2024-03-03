@@ -5,6 +5,7 @@ from dictionary import Dictionary
 from enums import MoveStatus, SolutionState
 from iterators import NextLetterIterator
 from position import Position
+from placement import Placement
 from scoreboard import Scoreboard
 from typing import List
 
@@ -28,7 +29,7 @@ def solve_first_turn_helper(dictionary: Dictionary, board: Board, scoreboard: Sc
         for (letter, next_letters) in NextLetterIterator(letters):
             for next_move in next_moves:
                 new_board = board.copy()
-                new_board.set_tile(next_move, letter)
+                new_board.set_tile(Placement(next_move, letter))
                 new_moves = copy.deepcopy(moves)
                 new_moves.append(next_move)
                 boards.extend(solve_helper(dictionary, new_board, next_letters, new_moves, SolutionState.FIRST_LETTER))
@@ -69,7 +70,7 @@ def solve_first_turn_helper(dictionary: Dictionary, board: Board, scoreboard: Sc
                     new_moves = copy.deepcopy(moves)
                     new_moves.append(next_move)
                     boards.extend(solve_helper(dictionary, new_board, next_letters, new_moves, solution_state))
-    return boards    
+    return boards
 
 
 def solve(dictionary: Dictionary, board: Board, letters: List[str]) -> List[Board]:

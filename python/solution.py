@@ -3,7 +3,6 @@ from board import Board
 from constants import ENDC, RED
 from scoreboard import Scoreboard
 from turns import Turn
-from typing import List
 
 
 class Solution:

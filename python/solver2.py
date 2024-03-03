@@ -1,17 +1,35 @@
-from typing import List
 import copy
 
 from board import Board
-from iterators import NextLetterIterator
-from enums import Direction, Shape
 from dictionary import Dictionary
+from enums import Direction, Shape
+from iterators import NextLetterIterator
 from placement import Placement
 from position import Position
-from turns2 import Turn
 from scoreboard import Scoreboard
+from turns2 import Turn
+from util import dedup_turns, timer
 
 
-def solve(board: Board, scoreboard: Scoreboard, dictionary: Dictionary, letters: List[str]) -> List[Turn]:
+@timer
+def solve(board: Board, scoreboard: Scoreboard, dictionary: Dictionary, letters: list[str]) -> list[Turn]:
+    """A recursive solver.
+
+    Given a list of player tiles and a board state, returns a list of
+    valid and deduped solutions in the form of turns.
+    """
+    turns = _initial_expand(board, scoreboard, dictionary, letters)
+    valid_turns = _filter_valid_turns(turns, board, dictionary)
+    deduped_turns = dedup_turns(valid_turns)
+    print(f"Generated {len(turns)} initial solutions.")
+    print(f"Validation resulted in {len(valid_turns)} solutions.")
+    print(f"Deduping resulted in {len(deduped_turns)} solutions.")
+    return deduped_turns
+
+
+@timer
+def _initial_expand(board: Board, scoreboard: Scoreboard, dictionary: Dictionary, letters: list[str]) -> list[Turn]:
+    # For an empty board, any word must use the star tile.
     if board.is_empty():
         next_positions = [scoreboard.get_star_position()]
     else:
@@ -28,13 +46,15 @@ def solve(board: Board, scoreboard: Scoreboard, dictionary: Dictionary, letters:
                 if word_type != None:
                     placements = {placement.position: placement.letter}
                     turn = Turn(placements, range, shape)
+                    # If this is a valid word, store this as a solution.
                     if word_type.is_word:
                         turns.append(turn)
+                    # If this is a substring, recurse from this branch.
                     if word_type.is_substring:
                         turns.extend(_expand(board, dictionary, remaining_letters, turn))
     return turns
 
-def _expand(board: Board, dictionary: Dictionary, letters: List[str], turn: Turn) -> List[Turn]:
+def _expand(board: Board, dictionary: Dictionary, letters: list[str], turn: Turn) -> list[Turn]:
     turns = []
 
     # Base case.
@@ -124,6 +144,15 @@ def _expand(board: Board, dictionary: Dictionary, letters: List[str], turn: Turn
                         turns.extend(_expand(board, dictionary, remaining_letters, updated_turn))
     return turns
 
+
+def _is_turn_valid(turn: Turn, board: Board, dictionary: Dictionary) -> bool:
+    new_board = board.copy_and_apply_turn2(turn)
+    return new_board.is_state_valid(dictionary)[0]
+
+
+@timer
+def _filter_valid_turns(turns: list[Turn], board: Board, dictionary: Dictionary) -> list[Turn]:
+    return list(filter(lambda turn: _is_turn_valid(turn, board, dictionary), turns))
 
 def select_row(board: Board, turn: Turn, start: int, end: int, row: int) -> str:
     letters = []

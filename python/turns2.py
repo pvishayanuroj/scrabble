@@ -8,7 +8,7 @@ class Turn:
 
     def __init__(self, placements, range: Range, shape: Shape):
         self._placements = placements
-        self._range =  range
+        self._range = range
         self._shape = shape
 
     def add_placement(self, placement: Placement):
@@ -27,6 +27,13 @@ class Turn:
     @property
     def shape(self) -> Shape:
         return self._shape
+
+    # Returns a list of placements in this turn, in random order.
+    @property
+    def placements(self) -> list[Placement]:
+        return [
+            Placement(position, letter) for position, letter in self._placements.items()
+        ]
 
     def get_tile_unchecked(self, position) -> str:
         return self._placements[position]

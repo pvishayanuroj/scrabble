@@ -1,11 +1,12 @@
 from typing import Optional
 
+from util import get_all_substrings
 from word_type import WordType
 
 
 class Dictionary:
     """Loads from a dictionary file and provides utility methods.
-    
+
     The expected file format is one word per line.
     """
     def __init__(self, filepath: str, omit_filepath=None):
@@ -58,11 +59,3 @@ class Dictionary:
 
     def check(self, value: str) -> Optional[WordType]:
         return self._words2.get(value)
-
-
-def get_all_substrings(word: str) -> list[str]:
-    substrings = []
-    for substring_len in range(1, len(word) + 1):
-        for start_index in range(len(word) - substring_len + 1):
-            substrings.append(word[start_index : (start_index + substring_len)])
-    return substrings
