@@ -64,8 +64,8 @@ def main():
         #game_name = select_game_name(game_names)
         #game_file = get_latest_game_file(args.games, game_name)
         #player_tiles = get_player_tiles()
-        game_file = '/Users/pvishayanuroj/projects/scrabble/games/game3_20240301_000000.txt'
-        player_tiles = [f for f in 'NRALEFI']
+        game_file = '/Users/pvishayanuroj/projects/scrabble/games/game2_20240301_000000.txt'
+        player_tiles = [f for f in 'GETHUTO']
         scoreboard = Scoreboard(args.board, args.points)
         dictionary = Dictionary(args.dictionary, args.omit)
         board = Board(scoreboard.size, dictionary)

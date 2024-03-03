@@ -11,7 +11,7 @@ def timer(func):
         result = func(*args, **kwargs)
         end_time = time.time()
         print(
-            f"Execution time for {func.__name__}: {(end_time - start_time):.3f} seconds"
+            f"Execution time for {func.__module__}.{func.__name__}: {(end_time - start_time):.3f} seconds"
         )
         return result
 

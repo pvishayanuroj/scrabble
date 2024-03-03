@@ -1,6 +1,6 @@
 from typing import Optional
 
-from util import get_all_substrings
+from util import get_all_substrings, timer
 from word_type import WordType
 
 
@@ -9,27 +9,40 @@ class Dictionary:
 
     The expected file format is one word per line.
     """
-    def __init__(self, filepath: str, omit_filepath=None):
+
+    def __init__(self, filepath: str, omitted_words_filepath: Optional[str]):
         self._words = set()
         self._substrings = set()
-        self._words2 = {}
-        omitted_words = (
-            self._load_omitted_words(omit_filepath) if omit_filepath else set()
-        )
-        self._load(filepath, omitted_words)
+        self._substring_types = {}
+        self._load(filepath, omitted_words_filepath)
 
     def _load_omitted_words(self, filepath: str) -> set[str]:
         unique_words = set(self._read_file(filepath))
         return unique_words
 
-    def _load(self, filepath: str, omitted_words: set[str]):
+    @timer
+    def _load(self, filepath: str, omit_filepath: Optional[str]):
+        # Load words to omit.
+        omitted_words = (
+            self._load_omitted_words(omit_filepath) if omit_filepath else set()
+        )
+
+        # Load the words.
         for word in self._read_file(filepath):
             if word not in omitted_words and word not in self._words:
                 self._words.add(word)
-        self._preprocess()
-        self._preprocess2()
-        print(f"Loaded {len(self._words)} words")
-        print(f"Preprocessed {len(self._substrings)} substrings")
+
+        # Generate the substrings.
+        for word in self._words:
+            self._substrings.update(get_all_substrings(word))
+
+        # Preprocess all the substrings.
+        for substring in self._substrings:
+            is_substring = True
+            is_word = substring in self._words
+            self._substring_types[substring] = WordType(is_substring, is_word)
+
+        print(f"Loaded {len(self._words)} dictionary words and {len(self._substrings)} substrings.")
 
     def _read_file(self, filepath: str) -> list[str]:
         words = []
@@ -40,17 +53,6 @@ class Dictionary:
                 words.append(line.strip().upper())
         return words
 
-    def _preprocess(self):
-        for word in self._words:
-            for substring in get_all_substrings(word):
-                self._substrings.add(substring)
-
-    def _preprocess2(self):
-        for value in self._substrings:
-            is_substring = True
-            is_word = value in self._words
-            self._words2[value] = WordType(is_substring, is_word)
-
     def is_word(self, value: str) -> bool:
         return value in self._words
 
@@ -58,4 +60,4 @@ class Dictionary:
         return value in self._substrings
 
     def check(self, value: str) -> Optional[WordType]:
-        return self._words2.get(value)
+        return self._substring_types.get(value)
