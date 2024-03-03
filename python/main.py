@@ -7,9 +7,10 @@ import time
 from board import Board
 from dictionary import Dictionary
 from enums import MenuSelection
+from placement import Placement
 from scoreboard import Scoreboard
 from solution import Solution
-from turns import Placement, Turn, dedup_turns
+from turns import Turn, dedup_turns
 from solver import solve, solve_first_turn
 from solver2 import solve as solve2
 from typing import List, Union
@@ -53,11 +54,11 @@ def main():
         selected_solution.save(generate_file_name(args.games, game_name))
     elif selection == MenuSelection.LOAD_GAME:
         game_names = get_games(args.games)
-        game_name = select_game_name(game_names)
-        game_file = get_latest_game_file(args.games, game_name)
-        player_tiles = get_player_tiles()
-        #game_file = '/Users/pvishayanuroj/projects/scrabble/games/game2_20240301_000000.txt'
-        #player_tiles = [f for f in 'GETHUTO']
+        #game_name = select_game_name(game_names)
+        #game_file = get_latest_game_file(args.games, game_name)
+        #player_tiles = get_player_tiles()
+        game_file = '/Users/pvishayanuroj/projects/scrabble/games/game2_20240301_000000.txt'
+        player_tiles = [f for f in 'GETHUTO']
         scoreboard = Scoreboard(args.board, args.points)
         dictionary = Dictionary(args.dictionary, args.omit)
         board = Board(scoreboard.size, dictionary)

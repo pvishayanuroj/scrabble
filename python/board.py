@@ -4,11 +4,12 @@ from constants import ENDC, RED
 from dictionary import Dictionary
 from enums import Direction, MoveStatus, Shape, SolutionState
 from iterators import BoardIterator
+from placement import Placement
 from position import Position
 from scoreboard import Scoreboard
 from size import Size
 from typing import List, Union
-from turns import Placement, Turn
+from turns import Turn
 from word_position import WordPosition
 
 

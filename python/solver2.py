@@ -5,10 +5,10 @@ from board import Board
 from iterators import NextLetterIterator
 from enums import Direction, Shape
 from dictionary import Dictionary
+from placement import Placement
 from position import Position
 from turns2 import Turn
 from scoreboard import Scoreboard
-from turns import Placement
 
 
 def solve(board: Board, scoreboard: Scoreboard, dictionary: Dictionary, letters: List[str]) -> List[Turn]:
