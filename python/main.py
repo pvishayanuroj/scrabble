@@ -56,8 +56,8 @@ def main():
         game_name = select_game_name(game_names)
         game_file = get_latest_game_file(args.games, game_name)
         player_tiles = get_player_tiles()
-        #game_file = '/Users/pvishayanuroj/projects/scrabble/games/game3_20240301_000000.txt'
-        #player_tiles = [f for f in 'NRALEFI']
+        #game_file = '/Users/pvishayanuroj/projects/scrabble/games/game2_20240301_000000.txt'
+        #player_tiles = [f for f in 'GETHUTO']
         scoreboard = Scoreboard(args.board, args.points)
         dictionary = Dictionary(args.dictionary, args.omit)
         board = Board(scoreboard.size, dictionary)
@@ -86,8 +86,8 @@ def main():
         for turn in new_unique_turns:
             new_solutions.append(Solution(board, turn, scoreboard))
         new_solutions.sort(reverse=True)
-        for index, solution in enumerate(new_solutions[:MAX_SOLUTIONS_TO_SHOW]):
-            print(f"\n---------Solution {index + 1}-----------\n{solution}")
+        # for index, solution in enumerate(new_solutions[:MAX_SOLUTIONS_TO_SHOW]):
+        #     print(f"\n---------Solution {index + 1}-----------\n{solution}")
 
         print("OLD RUN")
         start_time = time.time()
@@ -101,8 +101,8 @@ def main():
             solutions.append(Solution(board, turn, scoreboard))
         print(f"DEDUP to {len(solutions)} solutions. TOTAL: {(time.time() - start_time):.2f} secs")
         solutions.sort(reverse=True)
-        for index, solution in enumerate(solutions[:MAX_SOLUTIONS_TO_SHOW]):
-            print(f"\n---------Solution {index + 1}-----------\n{solution}")
+        # for index, solution in enumerate(solutions[:MAX_SOLUTIONS_TO_SHOW]):
+        #     print(f"\n---------Solution {index + 1}-----------\n{solution}")
 
         missing_turns2 = []
         for turn in unique_turns:

@@ -59,3 +59,29 @@ test4
 Generated 9846 solutions in 3.95 secs
 Pruned down to 970 solutions in 4.65 secs
 DEDUP to 479 solutions. TOTAL: 8.64 secs
+
+Made a fix to the original approach since it was missing solutions. On the second letter tile placement, the shape was being incorrectly calculated since the previous and next move were not being considered. Only the previous move, single move was considered.
+
+test3
+
+Generated 1870 solutions in 0.69 secs
+Pruned down to 323 solutions in 0.95 secs
+DEDUP to 203 solutions. TOTAL: 1.66 secs
+OLD RUN
+Generated 1627 boards in 5.75 secs
+Prune down to 323 boards in 0.68 secs
+DEDUP to 203 solutions. TOTAL: 6.52 secs
+0 turns in OLD not in NEW
+0 turns in NEW not in OLD
+
+test4
+
+Generated 9846 solutions in 3.87 secs
+Pruned down to 970 solutions in 4.61 secs
+DEDUP to 479 solutions. TOTAL: 8.53 secs
+OLD RUN
+Generated 8767 boards in 33.02 secs
+Prune down to 970 boards in 3.23 secs
+DEDUP to 479 solutions. TOTAL: 36.58 secs
+0 turns in OLD not in NEW
+0 turns in NEW not in OLD

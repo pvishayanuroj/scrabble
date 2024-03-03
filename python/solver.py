@@ -86,6 +86,7 @@ def solve(dictionary: Dictionary, board: Board, letters: List[str]) -> List[Boar
 def solve_helper(dictionary: Dictionary, board: Board, letters: List[str], moves: List[Position], solution_state: SolutionState):
     """Recursive solver method."""
     boards = []
+    # If no letters, place the first letter.
     if solution_state == SolutionState.NO_LETTERS:
         next_moves = board.get_first_tile_positions()
         for (letter, next_letters) in NextLetterIterator(letters):
@@ -102,12 +103,13 @@ def solve_helper(dictionary: Dictionary, board: Board, letters: List[str], moves
                     new_moves = copy.deepcopy(moves)
                     new_moves.append(next_move)
                     boards.extend(solve_helper(dictionary, new_board, next_letters, new_moves, SolutionState.FIRST_LETTER))
+    # If first letter placed, place the second letter.
     elif solution_state == SolutionState.FIRST_LETTER:
         next_moves = board.get_next_tile_moves(moves)
         for (letter, next_letters) in NextLetterIterator(letters):
             for next_move in next_moves:
-                rows = set(map(lambda x: x.row, moves))
-                cols = set(map(lambda x: x.col, moves))
+                rows = set(map(lambda x: x.row, moves + [next_move]))
+                cols = set(map(lambda x: x.col, moves + [next_move]))
                 next_solution_state = SolutionState.VERTICAL
                 if len(rows) == 1 and len(cols) != 1:
                     next_solution_state = SolutionState.HORIZONTAL
