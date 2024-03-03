@@ -1,5 +1,6 @@
-from typing import List
+from enums import Direction
 from position import Position
+from range import Range
 from size import Size
 
 
@@ -26,8 +27,9 @@ class BoardIterator:
 
 
 class NextLetter:
+    """Struct to wrap a letter and remaining letters."""
 
-    def __init__(self, letter, next_letters: List[str]):
+    def __init__(self, letter, next_letters: list[str]):
         self._letter = letter
         self._next_letters = next_letters
 
@@ -36,13 +38,14 @@ class NextLetter:
         return self._letter
 
     @property
-    def next_letters(self) -> List[str]:
+    def next_letters(self) -> list[str]:
         return self._next_letters
 
 
 class NextLetterIterator:
+    """Iterator that returns a tuple of the Nth letter and the remaining letters after the Nth letter."""
 
-    def __init__(self, letters: List[str]):
+    def __init__(self, letters: list[str]):
         self._letters = letters
         seen = set()
         self._unique_letters = []
@@ -63,4 +66,44 @@ class NextLetterIterator:
         next_letters.remove(self._unique_letters[self._index])
         element = (self._unique_letters[self._index], next_letters)
         self._index += 1
+        return element
+
+
+class ColIterator:
+    """Iterator that returns positions up-to-down along a column for the given range."""
+
+    def __init__(self, range_param: Range):
+        if range_param.start.col != range_param.end.col:
+            raise ValueError(f"Cannot initialize column iterator with different columns: {range_param.start.col} and {range_param.end.col}")
+        self._curr = range_param.start
+        self._end = range_param.end
+
+    def __iter__(self):
+        return self
+
+    def __next__(self) -> Position:
+        if self._curr.row > self._end.row:
+            raise StopIteration
+        element = self._curr
+        self._curr = self._curr.move(Direction.DOWN)
+        return element
+
+
+class RowIterator:
+    """Iterator that returns positions left-to-right along a row for the given range."""
+
+    def __init__(self, range_param: Range):
+        if range_param.start.row != range_param.end.row:
+            raise ValueError(f"Cannot initialize row iterator with different rows: {range_param.start.row} and {range_param.end.row}")
+        self._curr = range_param.start
+        self._end = range_param.end
+
+    def __iter__(self):
+        return self
+
+    def __next__(self) -> Position:
+        if self._curr.col > self._end.col:
+            raise StopIteration
+        element = self._curr
+        self._curr = self._curr.move(Direction.RIGHT)
         return element

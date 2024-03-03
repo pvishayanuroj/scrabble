@@ -39,10 +39,7 @@ def main():
         dictionary = Dictionary(args.dictionary, args.omit)
         board = Board(scoreboard.size, dictionary)
 
-        #start_time = time.time()
         new_unique_turns = solve2(board, scoreboard, dictionary, player_tiles)
-        #solution_generation_time = time.time()
-        #print(f"PRUNE and DEDUP to {len(new_unique_turns)} solutions. TOTAL: {(solution_generation_time - start_time):.2f} secs")
 
         solution_boards = solve_first_turn(dictionary, board, scoreboard, player_tiles)
         solutions = []
@@ -74,13 +71,7 @@ def main():
         board = Board(scoreboard.size, dictionary)
         board.load_state(game_file)
 
-
-        #start_time = time.time()
         new_unique_turns = solve2(board, scoreboard, dictionary, player_tiles)
-        #solution_generation_time = time.time()
-        print(f"Generated {len(new_unique_turns)} solutions.")
-        #new_unique_turns = validate_and_dedup_turns(board, dictionary, solution_turns)
-        #print(f"PRUNE and DEDUP to {len(new_unique_turns)} solutions. TOTAL: {(time.time() - start_time):.2f} secs")
         new_solutions = []
         # for turn in new_unique_turns:
         #     new_solutions.append(Solution(board, turn, scoreboard))

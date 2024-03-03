@@ -2,10 +2,10 @@ import copy
 
 from board import Board
 from dictionary import Dictionary
-from enums import Direction, Shape
-from iterators import NextLetterIterator
+from enums import Shape
+from iterators import ColIterator, NextLetterIterator, RowIterator
 from placement import Placement
-from position import Position
+from range import Range
 from scoreboard import Scoreboard
 from turns2 import Turn
 from util import dedup_turns, timer
@@ -61,87 +61,54 @@ def _expand(board: Board, dictionary: Dictionary, letters: list[str], turn: Turn
     if len(letters) == 0:
         return turns
 
-    if turn.shape == Shape.HORIZONTAL:
-        left = board.get_next_empty_tile(turn.range.start, Direction.LEFT)
-        right = board.get_next_empty_tile(turn.range.end, Direction.RIGHT)
+    shape = turn.shape
 
-        if left:
-            curr_word = select_row(board, turn, left.col + 1, turn.range.end.col, left.row)
-            for (letter, remaining_letters) in NextLetterIterator(letters):
+    start_position = board.get_next_empty_tile(turn.range.start, shape.start_direction)
+    if start_position:
+        existing_word_start_position = start_position.move(shape.start_direction.reverse)
+        existing_word_range = Range(existing_word_start_position, turn.range.end)
+        existing_word = _form_word(board, turn, existing_word_range, shape)
+        for (letter, remaining_letters) in NextLetterIterator(letters):
+            placement = Placement(start_position, letter)
 
-                (vertical_word, _) = board.get_word_from_placement(Placement(left, letter), Shape.VERTICAL)
-                if len(vertical_word) > 1 and not dictionary.is_word(vertical_word):
-                    continue
+            (cross_word, _) = board.get_word_from_placement(placement, turn.shape.opposite)
+            if len(cross_word) > 1 and not dictionary.is_word(cross_word):
+                continue
 
-                word = letter + curr_word
-                word_type = dictionary.check(word)
-                if word_type != None:
-                    updated_turn = copy.copy(turn)
-                    updated_turn.add_placement(Placement(left, letter))
-                    updated_turn.update_range_start(left)
-                    if word_type.is_word:
-                        turns.append(updated_turn)
-                    if word_type.is_substring:
-                        turns.extend(_expand(board, dictionary, remaining_letters, updated_turn))
-        if right:
-            curr_word = select_row(board, turn, turn.range.start.col, right.col - 1, right.row)
-            for (letter, remaining_letters) in NextLetterIterator(letters):
+            new_word = letter + existing_word
+            word_type = dictionary.check(new_word)
+            if word_type != None:
+                updated_turn = copy.copy(turn)
+                updated_turn.add_placement(placement)
+                updated_turn.update_range_start(start_position)
+                if word_type.is_word:
+                    turns.append(updated_turn)
+                if word_type.is_substring:
+                    turns.extend(_expand(board, dictionary, remaining_letters, updated_turn))
 
-                (vertical_word, _) = board.get_word_from_placement(Placement(right, letter), Shape.VERTICAL)
-                if len(vertical_word) > 1 and not dictionary.is_word(vertical_word):
-                    continue
+    end_position = board.get_next_empty_tile(turn.range.end, shape.end_direction)
+    if end_position:
+        existing_word_end_position = end_position.move(shape.end_direction.reverse)
+        existing_word_range = Range(turn.range.start, existing_word_end_position)
+        existing_word = _form_word(board, turn, existing_word_range, shape)
+        for (letter, remaining_letters) in NextLetterIterator(letters):
+            placement = Placement(end_position, letter)
 
-                word = curr_word + letter
-                word_type = dictionary.check(word)
-                if word_type != None:
-                    updated_turn = copy.copy(turn)
-                    updated_turn.add_placement(Placement(right, letter))
-                    updated_turn.update_range_end(right)
-                    if word_type.is_word:
-                        turns.append(updated_turn)
-                    if word_type.is_substring:
-                        turns.extend(_expand(board, dictionary, remaining_letters, updated_turn))
+            (cross_word, _) = board.get_word_from_placement(placement, turn.shape.opposite)
+            if len(cross_word) > 1 and not dictionary.is_word(cross_word):
+                continue
 
-    elif turn.shape == Shape.VERTICAL:
-        up = board.get_next_empty_tile(turn.range.start, Direction.UP)
-        down = board.get_next_empty_tile(turn.range.end, Direction.DOWN)
+            new_word = existing_word + letter
+            word_type = dictionary.check(new_word)
+            if word_type != None:
+                updated_turn = copy.copy(turn)
+                updated_turn.add_placement(placement)
+                updated_turn.update_range_end(end_position)
+                if word_type.is_word:
+                    turns.append(updated_turn)
+                if word_type.is_substring:
+                    turns.extend(_expand(board, dictionary, remaining_letters, updated_turn))
 
-        if up:
-            curr_word = select_col(board, turn, up.row + 1, turn.range.end.row, up.col)
-            for (letter, remaining_letters) in NextLetterIterator(letters):
-
-                (horizontal_word, _) = board.get_word_from_placement(Placement(up, letter), Shape.HORIZONTAL)
-                if len(horizontal_word) > 1 and not dictionary.is_word(horizontal_word):
-                    continue
-
-                word = letter + curr_word
-                word_type = dictionary.check(word)
-                if word_type != None:
-                    updated_turn = copy.copy(turn)
-                    updated_turn.add_placement(Placement(up, letter))
-                    updated_turn.update_range_start(up)
-                    if word_type.is_word:
-                        turns.append(updated_turn)
-                    if word_type.is_substring:
-                        turns.extend(_expand(board, dictionary, remaining_letters, updated_turn))
-        if down:
-            curr_word = select_col(board, turn, turn.range.start.row, down.row - 1, down.col)
-            for (letter, remaining_letters) in NextLetterIterator(letters):
-
-                (horizontal_word, _) = board.get_word_from_placement(Placement(down, letter), Shape.HORIZONTAL)
-                if len(horizontal_word) > 1 and not dictionary.is_word(horizontal_word):
-                    continue
-
-                word = curr_word + letter
-                word_type = dictionary.check(word)
-                if word_type != None:
-                    updated_turn = copy.copy(turn)
-                    updated_turn.add_placement(Placement(down, letter))
-                    updated_turn.update_range_end(down)
-                    if word_type.is_word:
-                        turns.append(updated_turn)
-                    if word_type.is_substring:
-                        turns.extend(_expand(board, dictionary, remaining_letters, updated_turn))
     return turns
 
 
@@ -154,20 +121,17 @@ def _is_turn_valid(turn: Turn, board: Board) -> bool:
 def _filter_valid_turns(turns: list[Turn], board: Board) -> list[Turn]:
     return list(filter(lambda turn: _is_turn_valid(turn, board), turns))
 
-def select_row(board: Board, turn: Turn, start: int, end: int, row: int) -> str:
-    letters = []
-    for col in range(start, end + 1):
-        position = Position(row, col)
-        tile = board.get_tile(position)
-        if tile == '':
-            tile = turn.get_tile_unchecked(position)
-        letters.append(tile)
-    return ''.join(letters)
 
-def select_col(board: Board, turn: Turn, start: int, end: int, col: int) -> str:
+def _form_word(board: Board, turn: Turn, range: Range, shape: Shape) -> str:
+    """Uses the board and the placements made to form the word made by selecting the range."""
     letters = []
-    for row in range(start, end + 1):
-        position = Position(row, col)
+    if shape == Shape.HORIZONTAL:
+        iterator = RowIterator(range)
+    elif shape == Shape.VERTICAL:
+        iterator = ColIterator(range)
+    else:
+        raise ValueError(f"Unsupported enum value: {shape}")
+    for position in iterator:
         tile = board.get_tile(position)
         if tile == '':
             tile = turn.get_tile_unchecked(position)

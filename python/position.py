@@ -36,7 +36,7 @@ class Position:
     def col(self) -> int:
         return self._col
 
-    def move(self, direction: Direction):
+    def move(self, direction: Direction) -> Position:
         """Moves one unit in the given direction."""
         if direction == Direction.UP:
             return Position(self.row - 1, self.col)

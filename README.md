@@ -85,3 +85,12 @@ Prune down to 970 boards in 3.23 secs
 DEDUP to 479 solutions. TOTAL: 36.58 secs
 0 turns in OLD not in NEW
 0 turns in NEW not in OLD
+
+## Unit testing
+
+Unit tests need to be run from the python/ directory for some reason. e.g.
+
+```
+$ cd python
+$ python3 -m unittest test_iterators.py
+```

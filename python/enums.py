@@ -1,3 +1,4 @@
+from __future__ import annotations
 from enum import Enum, IntEnum
 
 
@@ -23,6 +24,18 @@ class Direction(Enum):
     UP = 3,
     DOWN = 4,
 
+    @property
+    def reverse(self) -> Direction:
+        if self == Direction.LEFT:
+            return Direction.RIGHT
+        if self == Direction.RIGHT:
+            return Direction.LEFT
+        if self == Direction.UP:
+            return Direction.DOWN
+        if self == Direction.DOWN:
+            return Direction.UP
+        raise ValueError(f"Invalid direction enum: {self}")
+
 
 class Shape(Enum):
     """The shape of the word that the current form is taking."""
@@ -30,6 +43,32 @@ class Shape(Enum):
     VERTICAL = 2,
     HORIZONTAL = 3,
 
+    @property
+    def start_direction(self) -> Direction:
+        """Returns the direction associated with the start of this shape word."""
+        if self == Shape.VERTICAL:
+            return Direction.UP
+        if self == Shape.HORIZONTAL:
+            return Direction.LEFT
+        raise ValueError(f"Invalid shape enum: {self}")
+
+    @property
+    def end_direction(self) -> Direction:
+        """Returns the direction associated with the end of this shape word."""
+        if self == Shape.VERTICAL:
+            return Direction.DOWN
+        if self == Shape.HORIZONTAL:
+            return Direction.RIGHT
+        raise ValueError(f"Invalid shape enum: {self}")
+
+    @property
+    def opposite(self) -> Shape:
+        """Returns the opposite shape."""
+        if self == Shape.VERTICAL:
+            return Shape.HORIZONTAL
+        if self == Shape.HORIZONTAL:
+            return Shape.VERTICAL
+        raise ValueError(f"Invalid shape enum: {self}")
 
 class SolutionState(Enum):
     NO_LETTERS = 1,
