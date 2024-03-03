@@ -11,6 +11,7 @@ from placement import Placement
 from scoreboard import Scoreboard
 from solution import Solution
 from turns import Turn, dedup_turns
+from turns2 import Turn as Turn2
 from solver import solve, solve_first_turn
 from solver2 import solve as solve2
 from typing import List, Union
@@ -30,13 +31,21 @@ def main():
 
     args = parser.parse_args()
 
-    #selection = select_menu_option()
-    selection = MenuSelection.LOAD_GAME
+    selection = select_menu_option()
+    #selection = MenuSelection.LOAD_GAME
     if selection == MenuSelection.NEW_GAME:
         player_tiles = get_player_tiles()
         scoreboard = Scoreboard(args.board, args.points)
         dictionary = Dictionary(args.dictionary, args.omit)
         board = Board(scoreboard.size, dictionary)
+
+        start_time = time.time()
+        new_solution_turns = solve2(board, scoreboard, dictionary, player_tiles)
+        solution_generation_time = time.time()
+        print(f"Generated {len(new_solution_turns)} solutions in {(solution_generation_time - start_time):.2f} secs")
+        new_unique_turns = validate_and_dedup_turns(board, dictionary, new_solution_turns)
+        print(f"PRUNE and DEDUP to {len(new_unique_turns)} solutions. TOTAL: {(time.time() - start_time):.2f} secs")
+
         solution_boards = solve_first_turn(dictionary, board, scoreboard, player_tiles)
         solutions = []
         turns = []
@@ -45,13 +54,16 @@ def main():
         unique_turns = dedup_turns(turns)
         for turn in unique_turns:
             solutions.append(Solution(board, turn, scoreboard))
-        solutions.sort(reverse=True)
-        truncated_solutions = solutions[:MAX_SOLUTIONS_TO_SHOW]
-        selected_solution = select_solution(truncated_solutions)
-        if not selected_solution:
-            return
-        game_name = input("Enter a game name: ")
-        selected_solution.save(generate_file_name(args.games, game_name))
+
+        compare_solutions(board, scoreboard, unique_turns, new_unique_turns)
+
+        # solutions.sort(reverse=True)
+        # truncated_solutions = solutions[:MAX_SOLUTIONS_TO_SHOW]
+        # selected_solution = select_solution(truncated_solutions)
+        # if not selected_solution:
+        #     return
+        # game_name = input("Enter a game name: ")
+        # selected_solution.save(generate_file_name(args.games, game_name))
     elif selection == MenuSelection.LOAD_GAME:
         game_names = get_games(args.games)
         #game_name = select_game_name(game_names)
@@ -69,20 +81,8 @@ def main():
         solution_turns = solve2(board, scoreboard, dictionary, player_tiles)
         solution_generation_time = time.time()
         print(f"Generated {len(solution_turns)} solutions in {(solution_generation_time - start_time):.2f} secs")
-
-        #new_solutions: list[Solution] = []
-        new_turns = []
-        for turn in solution_turns:           
-            placements = [Placement(position, letter) for position, letter in turn._placements.items()]
-            original_turn = Turn(placements)
-            solution_board = board.copy_and_apply_turn(original_turn)
-            is_valid = solution_board.is_state_valid(dictionary)
-            if is_valid[0]:
-                new_turns.append(original_turn)
-                #new_solutions.append(Solution(board, original_turn, scoreboard))
-        print(f"Pruned down to {len(new_turns)} solutions in {(time.time() - solution_generation_time):.2f} secs")
-        new_unique_turns = dedup_turns(new_turns)
-        print(f"DEDUP to {len(new_unique_turns)} solutions. TOTAL: {(time.time() - start_time):.2f} secs")
+        new_unique_turns = validate_and_dedup_turns(board, dictionary, solution_turns)
+        print(f"PRUNE and DEDUP to {len(new_unique_turns)} solutions. TOTAL: {(time.time() - start_time):.2f} secs")
         new_solutions = []
         for turn in new_unique_turns:
             new_solutions.append(Solution(board, turn, scoreboard))
@@ -105,32 +105,48 @@ def main():
         # for index, solution in enumerate(solutions[:MAX_SOLUTIONS_TO_SHOW]):
         #     print(f"\n---------Solution {index + 1}-----------\n{solution}")
 
-        missing_turns2 = []
-        for turn in unique_turns:
-            if turn not in new_unique_turns:
-                missing_turns2.append(turn)
-        print(f"{len(missing_turns2)} turns in OLD not in NEW")
-        # for turn in missing_turns2:
-        #     s = Solution(board, turn, scoreboard)
-        #     print(s)
-        #     break
-
-        missing_turns = []
-        for turn in new_unique_turns:
-            if turn not in unique_turns:
-                missing_turns.append(turn)
-        print(f"{len(missing_turns)} turns in NEW not in OLD")
-
-        for turn in missing_turns:
-            s = Solution(board, turn, scoreboard)
-            print(s)
-            break
+        compare_solutions(board, scoreboard, unique_turns, new_unique_turns)
 
         # truncated_solutions = solutions[:MAX_SOLUTIONS_TO_SHOW]
         # selected_solution = select_solution(truncated_solutions)
         # if not selected_solution:
         #     return
         # selected_solution.save(generate_file_name(args.games, game_name))
+
+
+def validate_and_dedup_turns(board: Board, dictionary: Dictionary, turns: list[Turn2]) -> list[Turn2]:
+    valid_turns: list[Turn2] = []
+    for turn in turns:
+        placements = [Placement(position, letter) for position, letter in turn._placements.items()]
+        original_turn = Turn(placements)
+        solution_board = board.copy_and_apply_turn(original_turn)
+        is_valid = solution_board.is_state_valid(dictionary)
+        if is_valid[0]:
+            valid_turns.append(original_turn)
+    return dedup_turns(valid_turns)
+
+
+def compare_solutions(board: Board, scoreboard: Scoreboard, old_turns: List[Turn], new_turns: List[Turn]):
+    missing_new_turns = []
+    for turn in new_turns:
+        if turn not in old_turns:
+            missing_new_turns.append(turn)
+    print(f"{len(missing_new_turns)} turns in OLD not in NEW")
+    for turn in missing_new_turns:
+        s = Solution(board, turn, scoreboard)
+        print(s)
+        break
+
+    missing_old_turns = []
+    for turn in new_turns:
+        if turn not in old_turns:
+            missing_old_turns.append(turn)
+    print(f"{len(missing_old_turns)} turns in NEW not in OLD")
+
+    for turn in missing_old_turns:
+        s = Solution(board, turn, scoreboard)
+        print(s)
+        break
 
 
 def generate_file_name(directory_path: str, game_name: str) -> str:
