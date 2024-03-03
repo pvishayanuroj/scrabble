@@ -54,7 +54,12 @@ def _initial_expand(board: Board, scoreboard: Scoreboard, dictionary: Dictionary
                         turns.extend(_expand(board, dictionary, remaining_letters, turn))
     return turns
 
+
 def _expand(board: Board, dictionary: Dictionary, letters: list[str], turn: Turn) -> list[Turn]:
+    """The recursive helper method used for second and later tile placements in a turn.
+
+    Assumes that the given turn has at least one placement.
+    """
     turns = []
 
     # Base case.
@@ -63,6 +68,7 @@ def _expand(board: Board, dictionary: Dictionary, letters: list[str], turn: Turn
 
     shape = turn.shape
 
+    # Attempt to add a new tile at the start of the current word.
     start_position = board.get_next_empty_tile(turn.range.start, shape.start_direction)
     if start_position:
         existing_word_start_position = start_position.move(shape.start_direction.reverse)
@@ -71,13 +77,20 @@ def _expand(board: Board, dictionary: Dictionary, letters: list[str], turn: Turn
         for (letter, remaining_letters) in NextLetterIterator(letters):
             placement = Placement(start_position, letter)
 
+            # If the new letter touches other tiles in the opposite
+            # shape, check that the "cross" word it forms is valid.
             (cross_word, _) = board.get_word_from_placement(placement, turn.shape.opposite)
             if len(cross_word) > 1 and not dictionary.is_word(cross_word):
                 continue
 
+            # Check if the new word formed by adding the letter is:
+            # 1) A dictionary word. If so, store the turn.
+            # 2) A substring. If so, keep recursing.
             new_word = letter + existing_word
             word_type = dictionary.check(new_word)
             if word_type != None:
+                # Do not update the original reference, since this is
+                # being used by all the branches.
                 updated_turn = copy.copy(turn)
                 updated_turn.add_placement(placement)
                 updated_turn.update_range_start(start_position)
@@ -86,6 +99,7 @@ def _expand(board: Board, dictionary: Dictionary, letters: list[str], turn: Turn
                 if word_type.is_substring:
                     turns.extend(_expand(board, dictionary, remaining_letters, updated_turn))
 
+    # Attempt to add a new tile at the end of the current word.
     end_position = board.get_next_empty_tile(turn.range.end, shape.end_direction)
     if end_position:
         existing_word_end_position = end_position.move(shape.end_direction.reverse)
@@ -94,13 +108,20 @@ def _expand(board: Board, dictionary: Dictionary, letters: list[str], turn: Turn
         for (letter, remaining_letters) in NextLetterIterator(letters):
             placement = Placement(end_position, letter)
 
+            # If the new letter touches other tiles in the opposite
+            # shape, check that the "cross" word it forms is valid.
             (cross_word, _) = board.get_word_from_placement(placement, turn.shape.opposite)
             if len(cross_word) > 1 and not dictionary.is_word(cross_word):
                 continue
 
+            # Check if the new word formed by adding the letter is:
+            # 1) A dictionary word. If so, store the turn.
+            # 2) A substring. If so, keep recursing.
             new_word = existing_word + letter
             word_type = dictionary.check(new_word)
             if word_type != None:
+                # Do not update the original reference, since this is
+                # being used by all the branches.
                 updated_turn = copy.copy(turn)
                 updated_turn.add_placement(placement)
                 updated_turn.update_range_end(end_position)
