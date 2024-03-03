@@ -6,6 +6,7 @@ from enums import Direction, MoveStatus, Shape, SolutionState
 from iterators import BoardIterator
 from placement import Placement
 from position import Position
+from range import Range
 from scoreboard import Scoreboard
 from size import Size
 from typing import List, Union
@@ -323,7 +324,7 @@ class Board:
         else:
             raise ValueError(f"Invalid shape: {shape}")
 
-    def get_word_from_placement(self, placement: Placement, shape: Shape) -> tuple[str, Position, Position]:
+    def get_word_from_placement(self, placement: Placement, shape: Shape) -> tuple[str, Range]:
         """Assumes the given placement and returns the word formed with the given shape."""
         if shape == Shape.HORIZONTAL:
             start = self.get_last_non_empty_tile(placement.position, Direction.LEFT)
@@ -336,7 +337,7 @@ class Board:
                     word += placement.letter
                 else:
                     word += tile
-            return (word, start, end)
+            return (word, Range(start, end))
         if shape == Shape.VERTICAL:
             start = self.get_last_non_empty_tile(placement.position, Direction.UP)
             end = self.get_last_non_empty_tile(placement.position, Direction.DOWN)
@@ -348,7 +349,7 @@ class Board:
                     word += placement.letter
                 else:
                     word += tile                
-            return (word, start, end)
+            return (word, Range(start, end))
         raise RuntimeError(f"Invalid shape: {shape}")
 
     def get_column(self, index) -> List[str]:
