@@ -14,7 +14,12 @@ class Turn:
         self._shape = shape
 
     def __eq__(self, other: Turn):
-        return sorted(self.placements) == sorted(other.placements)
+        if len(self._placements) != len(other._placements):
+            return False
+        for key, value in self._placements.items():
+            if key not in other._placements or other._placements[key] != value:
+                return False
+        return True
 
     def __copy__(self):
         return Turn(self._placements.copy(), self._range, self._shape)
