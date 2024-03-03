@@ -15,7 +15,7 @@ def solve_first_turn(dictionary: Dictionary, board: Board, scoreboard: Scoreboar
     boards = solve_first_turn_helper(dictionary, board, scoreboard, letters, [], SolutionState.NO_LETTERS)
     board_generation_time = time.time()
     print(f"Generated {len(boards)} boards in {(board_generation_time - start_time):.2f} secs")
-    valid_boards: List[Board] = list(filter(lambda x: x.is_state_valid(dictionary)[0], boards))
+    valid_boards: List[Board] = list(filter(lambda x: x.is_state_valid()[0], boards))
     board_pruning_time = time.time()
     print(f"Prune down to {len(valid_boards)} boards in {(board_pruning_time - board_generation_time):.2f} secs")
     return valid_boards
@@ -42,7 +42,7 @@ def solve_first_turn_helper(dictionary: Dictionary, board: Board, scoreboard: Sc
                 next_solution_state = SolutionState.VERTICAL
                 if len(rows) == 1 and len(cols) != 1:
                     next_solution_state = SolutionState.HORIZONTAL
-                (result, new_board) = board.is_move_valid(dictionary, next_move, letter, next_solution_state)
+                (result, new_board) = board.is_move_valid(next_move, letter, next_solution_state)
                 if result == MoveStatus.COMPLETE_WORD:
                     boards.append(new_board)
                 elif result == MoveStatus.PARTIAL_AND_COMPLETE_WORD:
@@ -58,7 +58,7 @@ def solve_first_turn_helper(dictionary: Dictionary, board: Board, scoreboard: Sc
         next_moves = board.get_next_tile_moves(moves)
         for (letter, next_letters) in NextLetterIterator(letters):
             for next_move in next_moves:
-                (result, new_board) = board.is_move_valid(dictionary, next_move, letter, solution_state)
+                (result, new_board) = board.is_move_valid(next_move, letter, solution_state)
                 if result == MoveStatus.COMPLETE_WORD:
                     boards.append(new_board)
                 elif result == MoveStatus.PARTIAL_AND_COMPLETE_WORD:
@@ -78,7 +78,7 @@ def solve(dictionary: Dictionary, board: Board, letters: List[str]) -> List[Boar
     boards = solve_helper(dictionary, board, letters, [], SolutionState.NO_LETTERS)
     board_generation_time = time.time()
     print(f"Generated {len(boards)} boards in {(board_generation_time - start_time):.2f} secs")
-    valid_boards: List[Board] = list(filter(lambda x: x.is_state_valid(dictionary)[0], boards))
+    valid_boards: List[Board] = list(filter(lambda x: x.is_state_valid()[0], boards))
     board_pruning_time = time.time()
     print(f"Prune down to {len(valid_boards)} boards in {(board_pruning_time - board_generation_time):.2f} secs")
     return valid_boards
@@ -92,7 +92,7 @@ def solve_helper(dictionary: Dictionary, board: Board, letters: List[str], moves
         next_moves = board.get_first_tile_positions()
         for (letter, next_letters) in NextLetterIterator(letters):
             for next_move in next_moves:
-                (result, new_board) = board.is_first_move_valid(dictionary, next_move, letter)
+                (result, new_board) = board.is_first_move_valid(next_move, letter)
                 if result == MoveStatus.COMPLETE_WORD:
                     boards.append(new_board)
                 elif result == MoveStatus.PARTIAL_AND_COMPLETE_WORD:
@@ -114,7 +114,7 @@ def solve_helper(dictionary: Dictionary, board: Board, letters: List[str], moves
                 next_solution_state = SolutionState.VERTICAL
                 if len(rows) == 1 and len(cols) != 1:
                     next_solution_state = SolutionState.HORIZONTAL
-                (result, new_board) = board.is_move_valid(dictionary, next_move, letter, next_solution_state)
+                (result, new_board) = board.is_move_valid(next_move, letter, next_solution_state)
                 if result == MoveStatus.COMPLETE_WORD:
                     boards.append(new_board)
                 elif result == MoveStatus.PARTIAL_AND_COMPLETE_WORD:
@@ -130,7 +130,7 @@ def solve_helper(dictionary: Dictionary, board: Board, letters: List[str], moves
         next_moves = board.get_next_tile_moves(moves)
         for (letter, next_letters) in NextLetterIterator(letters):
             for next_move in next_moves:
-                (result, new_board) = board.is_move_valid(dictionary, next_move, letter, solution_state)
+                (result, new_board) = board.is_move_valid(next_move, letter, solution_state)
                 if result == MoveStatus.COMPLETE_WORD:
                     boards.append(new_board)
                 elif result == MoveStatus.PARTIAL_AND_COMPLETE_WORD:

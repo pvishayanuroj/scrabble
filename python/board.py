@@ -163,7 +163,7 @@ class Board:
     def is_any_adjacent_tile_filled(self, position: Position) -> bool:
         return not self.are_adjacent_tiles_empty(position)
 
-    def is_state_valid(self, dictionary: Dictionary) -> tuple[bool, List[str]]:
+    def is_state_valid(self) -> tuple[bool, List[str]]:
         # Check that all tiles are next to at least one other tile.
         for position in BoardIterator(self._size):
             if self.is_tile_filled(position) and self.are_adjacent_tiles_empty(position):
@@ -177,7 +177,7 @@ class Board:
         for col_num in range(self._size.num_cols):
             chunks.extend(get_chunks(self.get_column(col_num)))
 
-        invalid_words = list(filter(lambda x: not dictionary.is_word(x), chunks))
+        invalid_words = list(filter(lambda x: not self._dictionary.is_word(x), chunks))
         if len(invalid_words) > 0:
             return (False, invalid_words)
         return (True, [])
@@ -242,13 +242,13 @@ class Board:
                 raise ValueError(f"Previous moves must form a line: {previous_moves}")
         return positions
 
-    def is_first_move_valid(self, dictionary: Dictionary, position: Position, letter: str) -> tuple[MoveStatus, Board]:
+    def is_first_move_valid(self, position: Position, letter: str) -> tuple[MoveStatus, Board]:
         new_board = self.copy()
         new_board.set_tile(Placement(position, letter))
         horizontal_chunk = new_board.get_chunk(position, Shape.HORIZONTAL)
         vertical_chunk = new_board.get_chunk(position, Shape.VERTICAL)
-        is_substring = dictionary.is_substring(horizontal_chunk.word) or dictionary.is_substring(vertical_chunk.word)
-        is_word = dictionary.is_word(horizontal_chunk.word) or dictionary.is_word(vertical_chunk.word)
+        is_substring = self._dictionary.is_substring(horizontal_chunk.word) or self._dictionary.is_substring(vertical_chunk.word)
+        is_word = self._dictionary.is_word(horizontal_chunk.word) or self._dictionary.is_word(vertical_chunk.word)
         if not is_word and not is_substring:
             return (MoveStatus.INVALID, new_board)
         if is_word and is_substring:
@@ -258,16 +258,16 @@ class Board:
         if is_substring:
             return (MoveStatus.PARTIAL_WORD, new_board)
 
-    def is_move_valid(self, dictionary: Dictionary, position: Position, letter: str, solution_state: SolutionState) -> tuple[MoveStatus, Board]:
+    def is_move_valid(self, position: Position, letter: str, solution_state: SolutionState) -> tuple[MoveStatus, Board]:
         new_board = self.copy()
         new_board.set_tile(Placement(position, letter))
         if solution_state == SolutionState.HORIZONTAL:
             vertical_chunk = new_board.get_chunk(position, Shape.VERTICAL)
-            if len(vertical_chunk.word) > 1 and not dictionary.is_word(vertical_chunk.word):
+            if len(vertical_chunk.word) > 1 and not self._dictionary.is_word(vertical_chunk.word):
                 return (MoveStatus.INVALID, new_board)
             horizontal_chunk = new_board.get_chunk(position, Shape.HORIZONTAL)
-            is_word = dictionary.is_word(horizontal_chunk.word)
-            is_substring = dictionary.is_substring(horizontal_chunk.word)
+            is_word = self._dictionary.is_word(horizontal_chunk.word)
+            is_substring = self._dictionary.is_substring(horizontal_chunk.word)
             if not is_word and not is_substring:
                 return (MoveStatus.INVALID, new_board)
             if is_word and is_substring:
@@ -279,11 +279,11 @@ class Board:
             raise ValueError("Invalid state")
         elif solution_state == SolutionState.VERTICAL:
             horizontal_chunk = new_board.get_chunk(position, Shape.HORIZONTAL)
-            if len(horizontal_chunk.word) > 1 and not dictionary.is_word(horizontal_chunk.word):
+            if len(horizontal_chunk.word) > 1 and not self._dictionary.is_word(horizontal_chunk.word):
                 return (MoveStatus.INVALID, new_board)
             vertical_chunk = new_board.get_chunk(position, Shape.VERTICAL)
-            is_word = dictionary.is_word(vertical_chunk.word)
-            is_substring = dictionary.is_substring(vertical_chunk.word)
+            is_word = self._dictionary.is_word(vertical_chunk.word)
+            is_substring = self._dictionary.is_substring(vertical_chunk.word)
             if not is_word and not is_substring:
                 return (MoveStatus.INVALID, new_board)
             if is_word and is_substring:

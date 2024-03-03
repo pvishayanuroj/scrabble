@@ -19,7 +19,7 @@ def solve(board: Board, scoreboard: Scoreboard, dictionary: Dictionary, letters:
     valid and deduped solutions in the form of turns.
     """
     turns = _initial_expand(board, scoreboard, dictionary, letters)
-    valid_turns = _filter_valid_turns(turns, board, dictionary)
+    valid_turns = _filter_valid_turns(turns, board)
     deduped_turns = dedup_turns(valid_turns)
     print(f"Generated {len(turns)} initial solutions.")
     print(f"Validation resulted in {len(valid_turns)} solutions.")
@@ -145,14 +145,14 @@ def _expand(board: Board, dictionary: Dictionary, letters: list[str], turn: Turn
     return turns
 
 
-def _is_turn_valid(turn: Turn, board: Board, dictionary: Dictionary) -> bool:
+def _is_turn_valid(turn: Turn, board: Board) -> bool:
     new_board = board.copy_and_apply_turn2(turn)
-    return new_board.is_state_valid(dictionary)[0]
+    return new_board.is_state_valid()[0]
 
 
 @timer
-def _filter_valid_turns(turns: list[Turn], board: Board, dictionary: Dictionary) -> list[Turn]:
-    return list(filter(lambda turn: _is_turn_valid(turn, board, dictionary), turns))
+def _filter_valid_turns(turns: list[Turn], board: Board) -> list[Turn]:
+    return list(filter(lambda turn: _is_turn_valid(turn, board), turns))
 
 def select_row(board: Board, turn: Turn, start: int, end: int, row: int) -> str:
     letters = []
