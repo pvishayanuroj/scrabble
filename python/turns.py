@@ -22,7 +22,7 @@ class Turn:
     @property
     def placements(self) -> List[Placement]:
         return self._placements
-    
+
     @property
     def len(self) -> int:
         return len(self._placements)

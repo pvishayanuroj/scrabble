@@ -397,7 +397,7 @@ class Board:
         return placements
 
     def get_score(self, turn: Turn, scoreboard: Scoreboard) -> int:
-        active_tiles = [placement.position for placement in turn.placements]
+        active_tiles = set([placement.position for placement in turn.placements])
         if turn.len == 1:
             score = 0
             horizontal_word = self.get_chunk(turn.placements[0].position, Shape.HORIZONTAL)
@@ -420,6 +420,30 @@ class Board:
                 if len(word_position.word) > 1:
                     score += scoreboard.score_word(word_position, active_tiles)
             return score
+
+    def get_score2(self, turn: Turn2, scoreboard: Scoreboard) -> int:
+        """Calculates the score based on applying the placements to the current board."""
+        placements = turn.placements
+        active_tiles = set([placement.position for placement in placements])
+        score = 0
+        if len(placements) == 1:
+            for shape in [Shape.HORIZONTAL, Shape.VERTICAL]:
+                word = self.get_chunk(placements[0].position, shape)
+                if len(word) > 1:
+                    score += scoreboard.score_word(word, active_tiles)
+            if score == 0:
+                raise ValueError(f"Single turn solution does not form a word at least two letters long.")
+        else:
+            # Score the "main" word.
+            word_position = self.get_chunk(placements[0].position, turn.shape)
+            score = scoreboard.score_word(word_position, active_tiles)
+            # Score the "cross" words.
+            cross_shape = turn.shape.opposite
+            for placement in placements:
+                word_position = self.get_chunk(placement.position, cross_shape)
+                if len(word_position.word) > 1:
+                    score += scoreboard.score_word(word_position, active_tiles)
+        return score
 
     def get_score_temp(self, other_board: Board, scoreboard: Scoreboard) -> int:
         placements = self.get_placements_from_diff(other_board)

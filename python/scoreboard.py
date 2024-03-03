@@ -45,7 +45,7 @@ class Scoreboard:
                 return position
         raise ValueError("No star tile found.")
 
-    def score_word(self, word_position: WordPosition, active_tiles: List[Position]) -> int:
+    def score_word(self, word_position: WordPosition, active_tiles: set[Position]) -> int:
         """Returns the point value of the word starting at the given position.
 
         The active_tiles list describes which tiles bonus tiles are allowed to be used.

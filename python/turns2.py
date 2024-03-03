@@ -1,3 +1,4 @@
+from __future__ import annotations
 from enums import Shape
 from position import Position
 from range import Range
@@ -11,8 +12,14 @@ class Turn:
         self._range = range
         self._shape = shape
 
-    def add_placement(self, placement: Placement):
-        self._placements[placement.position] = placement.letter
+    def __eq__(self, other: Turn):
+        return sorted(self.placements) == sorted(other.placements)
+        # if len(self.placements) != len(other.placements):
+        #     return False
+        # for key, value in self.placements.items():
+        #     if key not in other.placements or other.placements[key] != value:
+        #         return False
+        # return True
 
     def __copy__(self):
         return Turn(self._placements.copy(), self._range, self._shape)
@@ -35,11 +42,14 @@ class Turn:
             Placement(position, letter) for position, letter in self._placements.items()
         ]
 
-    def get_tile_unchecked(self, position) -> str:
-        return self._placements[position]
+    def add_placement(self, placement: Placement):
+        self._placements[placement.position] = placement.letter
 
     def update_range_start(self, start: Position):
         self._range = Range(start, self._range.end)
 
     def update_range_end(self, end: Position):
         self._range = Range(self._range.start, end)
+
+    def get_tile_unchecked(self, position) -> str:
+        return self._placements[position]
