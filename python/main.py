@@ -5,7 +5,7 @@ import os
 import re
 import time
 from board import Board
-from constants import MAX_SOLUTIONS_TO_SHOW
+from constants import GAME_FILE_PATTERN, MAX_SOLUTIONS_TO_SHOW
 from dictionary import Dictionary
 from enums import MenuSelection
 from scoreboard import Scoreboard
@@ -16,8 +16,6 @@ from solver import solve, solve_first_turn
 from solver2 import solve as solve2
 from typing import Union
 
-
-GAME_FILE_PATTERN = r'^(\w+)_\d{8}_\d{6}\.txt$'
 
 def main():
     parser = argparse.ArgumentParser(description="A command line word puzzle solver.")

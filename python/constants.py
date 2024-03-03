@@ -1,6 +1,8 @@
 RED = '\033[91m'
 ENDC = '\033[0m'
 
+GAME_FILE_PATTERN = r'^(\w+)_\d{8}_\d{6}\.txt$'
+
 MAX_LENGTH_WORD = 7
 MAX_LENGTH_WORD_SCORE = 50
 

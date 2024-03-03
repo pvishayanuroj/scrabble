@@ -77,12 +77,6 @@ class SolutionState(Enum):
     HORIZONTAL = 4,
 
 
-class TurnStateValue(Enum):
-    NO_PLACEMENTS = 1,
-    FIRST_PLACEMENT = 2,
-    MID_TURN = 3,
-
-
 class MoveStatus(Enum):
     INVALID = 1,
     PARTIAL_WORD = 2,
