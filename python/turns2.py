@@ -6,6 +6,7 @@ from turns import Placement
 
 
 class Turn:
+    """Stores the tile placements made in a player's current turn."""
 
     def __init__(self, placements, range: Range, shape: Shape):
         self._placements = placements
@@ -14,12 +15,6 @@ class Turn:
 
     def __eq__(self, other: Turn):
         return sorted(self.placements) == sorted(other.placements)
-        # if len(self.placements) != len(other.placements):
-        #     return False
-        # for key, value in self.placements.items():
-        #     if key not in other.placements or other.placements[key] != value:
-        #         return False
-        # return True
 
     def __copy__(self):
         return Turn(self._placements.copy(), self._range, self._shape)
