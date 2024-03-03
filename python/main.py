@@ -5,9 +5,9 @@ import os
 import re
 import time
 from board import Board
+from constants import MAX_SOLUTIONS_TO_SHOW
 from dictionary import Dictionary
 from enums import MenuSelection
-from placement import Placement
 from scoreboard import Scoreboard
 from solution import Solution
 from turns import Turn, dedup_turns
@@ -18,7 +18,6 @@ from typing import Union
 
 
 GAME_FILE_PATTERN = r'^(\w+)_\d{8}_\d{6}\.txt$'
-MAX_SOLUTIONS_TO_SHOW = 5
 
 def main():
     parser = argparse.ArgumentParser(description="A command line word puzzle solver.")
@@ -230,34 +229,6 @@ def select_solution(solutions: list[Solution]) -> Union[Solution, None]:
         except:
             print("Invalid input. Select a valid option.")
 
-
-# board = Board(scoreboard.get_size())
-# board.load_state(STATE_PATH)
-
-# turns = [
-#     Turn(Position(11, 7), 'O'),
-#     Turn(Position(12, 7), 'G'),
-#     Turn(Position(13, 7), 'U'),
-#     Turn(Position(14, 7), 'E'),
-# ]
-# solution = Solution(turns)
-# for turn in turns:
-#     board.set_tile(turn.position, turn.letter)
-# print(board)
-# print(board.get_score(solution, scoreboard))
-
-# if not board.is_state_valid(dictionary):
-#     print("Invalid board state")
-
-# is_valid = board.is_state_valid(dictionary)
-# print(f"is board valid: {is_valid}")
-#first_moves = board.get_first_tile_moves()
-#print(first_moves)
-#next_moves = board.get_next_tile_moves([Position(6, 6)])
-#next_moves = board.get_next_tile_moves([Position(6, 6), Position(7, 6)])
-#print(next_moves)
-#print(board.get_chunk(Position(7, 7), Shape.VERTICAL))
-#print(board.get_chunk(Position(7, 7), Shape.HORIZONTAL))
 
 if __name__ == "__main__":
     main()
