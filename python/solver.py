@@ -29,7 +29,7 @@ def solve_first_turn_helper(dictionary: Dictionary, board: Board, scoreboard: Sc
         next_moves = [scoreboard.get_star_position()]
         for (letter, next_letters) in NextLetterIterator(letters):
             for next_move in next_moves:
-                new_board = board.copy()
+                new_board = copy.copy(board.copy)
                 new_board.set_tile(Placement(next_move, letter))
                 new_moves = copy.deepcopy(moves)
                 new_moves.append(next_move)

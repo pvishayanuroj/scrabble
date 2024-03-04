@@ -1,4 +1,4 @@
-from typing import Optional
+from typing import Dict, Optional
 
 from util import get_all_substrings, timer
 from word_type import WordType
@@ -11,9 +11,9 @@ class Dictionary:
     """
 
     def __init__(self, filepath: str, omitted_words_filepath: Optional[str]):
-        self._words = set()
-        self._substrings = set()
-        self._substring_types = {}
+        self._words: set[str] = set()
+        self._substrings: set[str] = set()
+        self._substring_types: Dict[str, WordType] = {}
         self._load(filepath, omitted_words_filepath)
 
     def _load_omitted_words(self, filepath: str) -> set[str]:

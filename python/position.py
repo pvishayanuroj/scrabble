@@ -11,7 +11,9 @@ class Position:
     def __copy__(self):
         return Position(self._row, self._col)
 
-    def __eq__(self, other: Position) -> bool:
+    def __eq__(self, other: object) -> bool:
+        if not isinstance(other, Position):
+            return NotImplemented
         return self.row == other.row and self.col == other.col
 
     def __lt__(self, other: Position):

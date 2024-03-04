@@ -59,7 +59,7 @@ def _initial_expand(board: Board, scoreboard: Scoreboard, dictionary: Dictionary
             for shape in [Shape.HORIZONTAL, Shape.VERTICAL]:
                 (word, range) = board.get_word_from_placement(placement, shape)
                 word_type = dictionary.check(word)
-                if word_type != None:
+                if word_type is not None:
                     placements = {placement.position: placement.letter}
                     turn = Turn(placements, range, shape)
                     # If this is a valid word, store this as a solution.
@@ -76,7 +76,7 @@ def _expand(board: Board, dictionary: Dictionary, letters: list[Letter], turn: T
 
     Assumes that the given turn has at least one placement.
     """
-    turns = []
+    turns: list[Turn] = []
 
     # Base case.
     if len(letters) == 0:
@@ -104,7 +104,7 @@ def _expand(board: Board, dictionary: Dictionary, letters: list[Letter], turn: T
             # 2) A substring. If so, keep recursing.
             new_word = letter.val + existing_word
             word_type = dictionary.check(new_word)
-            if word_type != None:
+            if word_type is not None:
                 # Do not update the original reference, since this is
                 # being used by all the branches.
                 updated_turn = copy.copy(turn)
@@ -135,7 +135,7 @@ def _expand(board: Board, dictionary: Dictionary, letters: list[Letter], turn: T
             # 2) A substring. If so, keep recursing.
             new_word = existing_word + letter.val
             word_type = dictionary.check(new_word)
-            if word_type != None:
+            if word_type is not None:
                 # Do not update the original reference, since this is
                 # being used by all the branches.
                 updated_turn = copy.copy(turn)
@@ -163,14 +163,18 @@ def _form_word(board: Board, turn: Turn, range: Range, shape: Shape) -> str:
     """Uses the board and the placements made to form the word made by selecting the range."""
     letters: list[str] = []
     if shape == Shape.HORIZONTAL:
-        iterator = RowIterator(range)
+        for position in RowIterator(range):
+            tile = board.get_tile(position)
+            if tile == '':
+                tile = turn.get_tile_unchecked(position)
+            letters.append(tile)
+        return ''.join(letters)
     elif shape == Shape.VERTICAL:
-        iterator = ColIterator(range)
+        for position in ColIterator(range):
+            tile = board.get_tile(position)
+            if tile == '':
+                tile = turn.get_tile_unchecked(position)
+            letters.append(tile)
+        return ''.join(letters)
     else:
         raise ValueError(f"Unsupported enum value: {shape}")
-    for position in iterator:
-        tile = board.get_tile(position)
-        if tile == '':
-            tile = turn.get_tile_unchecked(position)
-        letters.append(tile)
-    return ''.join(letters)

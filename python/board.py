@@ -81,7 +81,7 @@ class Board:
                     raise ValueError(f"Expected {self._size.num_cols} columns, got {len(row)}")
                 self._state.append(row)
             if len(self._state) != self._size.num_rows:
-                raise ValueError(f"Expected {self._size.num_rows} rows, got {len(self.state)}")
+                raise ValueError(f"Expected {self._size.num_rows} rows, got {len(self._state)}")
         print(f"Successfully loaded {filepath}")
 
     def get_tile(self, position: Position) -> str:
@@ -115,7 +115,7 @@ class Board:
         curr_position = position
         while True:
             curr_tile = self.get_tile_checked(curr_position)
-            if curr_tile == None or curr_tile == '':
+            if curr_tile is None or curr_tile == '':
                 break
             output += curr_tile
         if direction == Direction.LEFT or direction == Direction.UP:

@@ -15,7 +15,9 @@ class Placement:
     def __lt__(self, other: Placement):
         return self.position < other.position
 
-    def __eq__(self, other: Placement):
+    def __eq__(self, other: object):
+        if not isinstance(other, Placement):
+            return NotImplemented
         return self.position == other.position and self.letter == other.letter
 
     def __str__(self):
