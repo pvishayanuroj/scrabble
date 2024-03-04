@@ -1,5 +1,5 @@
 from __future__ import annotations
-from typing import Dict
+from typing import Dict, Optional
 from enums import Shape
 from letter import Letter
 from position import Position
@@ -53,5 +53,8 @@ class Turn:
     def update_range_end(self, end: Position):
         self._range = Range(self._range.start, end)
 
-    def get_tile_unchecked(self, position) -> str:
+    def get_tile_unchecked(self, position: Position) -> str:
         return self._placements[position].val
+
+    def get_tile_checked(self, position: Position) -> Optional[Letter]:
+        return self._placements.get(position)

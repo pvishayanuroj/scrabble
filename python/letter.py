@@ -22,10 +22,10 @@ class Letter:
         return self.val == other.val and self.is_wildcard == other.is_wildcard
 
     def __str__(self):
-        return f"{self._val}, wildcard: {self._is_wildcard}"
+        return f"{self._val}{'*' if self._is_wildcard else ''}"
 
     def __repr__(self):
-        return f"{self._val}, wildcard: {self._is_wildcard}"
+        return f"{self._val}{'*' if self._is_wildcard else ''}"
 
     @property
     def val(self) -> str:

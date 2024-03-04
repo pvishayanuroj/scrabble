@@ -87,7 +87,6 @@ def main():
 
         new_unique_turns = solve2(board, scoreboard, dictionary, player_tiles)
         new_solutions = []
-        # converted_new_turns = list(map(lambda x: Turn(x.placements), new_unique_turns))
         for turn in new_unique_turns:
             new_solutions.append(Solution2(board, turn, scoreboard))
         new_solutions.sort(reverse=True)

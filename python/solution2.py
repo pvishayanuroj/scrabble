@@ -9,7 +9,7 @@ class Solution:
     def __init__(self, original_board: Board, turn: Turn, scoreboard: Scoreboard):
         self._original_board = original_board
         self._board = original_board.copy_and_apply_placements(turn.generate_placement_list())
-        self._score = self._board.get_score2(turn, scoreboard)
+        self._score = original_board.get_score2(turn, scoreboard)
 
     @property
     def score(self) -> int:

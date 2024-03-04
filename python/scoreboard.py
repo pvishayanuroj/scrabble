@@ -11,7 +11,7 @@ class Scoreboard:
     """The board without any letter tiles on it. Describes the scoring."""
     def __init__(self, board_filepath: str, points_filepath: str):
         self._board = []
-        self._points = {}
+        self._letter_values = {}
         num_cols = None
         with open(board_filepath, 'r') as file:
             for line in file.readlines():
@@ -32,12 +32,33 @@ class Scoreboard:
                 elements = line.strip().split(' ')
                 if len(elements) != 2:
                     raise ValueError(f"Invalid line for points: {line}")
-                self._points[elements[0]] = int(elements[1])
-        if len(self._points) != 26:
-            raise ValueError(f"Expected 26 letters, got {len(self._points)}")
+                self._letter_values[elements[0]] = int(elements[1])
+        if len(self._letter_values) != 26:
+            raise ValueError(f"Expected 26 letters, got {len(self._letter_values)}")
+
+    def get_letter_value(self, letter: str) -> int:
+        return self._letter_values[letter]
 
     def get_tile(self, position: Position) -> Tile:
         return self._board[position.row][position.col]
+
+    def get_word_multiplier(self, position: Position) -> int:
+        tile = self.get_tile(position)
+        if tile == Tile.DOUBLE_WORD or tile == Tile.STAR:
+            return 2
+        elif tile == Tile.TRIPLE_WORD:
+            return 3
+        else:
+            return 1
+
+    def get_letter_multiplier(self, position: Position) -> int:
+        tile = self.get_tile(position)
+        if tile == Tile.DOUBLE_LETTER:
+            return 2
+        elif tile == Tile.TRIPLE_LETTER:
+            return 3
+        else:
+            return 1
 
     def get_star_position(self) -> Position:
         for position in BoardIterator(self._size):
@@ -55,7 +76,7 @@ class Scoreboard:
         word_multipler = 1
         total = 0
         for letter in word_position.word:
-            letter_value = self._points[letter]
+            letter_value = self._letter_values[letter]
             tile = self.get_tile(curr_position)
             letter_multiplier = 1
             if curr_position in active_tiles:
