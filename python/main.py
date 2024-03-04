@@ -11,6 +11,7 @@ from enums import MenuSelection
 from player_tiles import PlayerTiles
 from scoreboard import Scoreboard
 from solution import Solution
+from solution2 import Solution as Solution2
 from turns import Turn, dedup_turns
 from turns2 import Turn as Turn2
 from solver import solve, solve_first_turn
@@ -40,7 +41,7 @@ def main():
         new_unique_turns = solve2(board, scoreboard, dictionary, player_tiles)
         new_solutions = []
         for turn in new_unique_turns:
-            new_solutions.append(Solution(board, turn, scoreboard))
+            new_solutions.append(Solution2(board, turn, scoreboard))
         new_solutions.sort(reverse=True)
         for index, solution in enumerate(new_solutions[:MAX_SOLUTIONS_TO_SHOW]):
             print(f"\n---------Solution {index + 1}-----------\n{solution}")
@@ -74,42 +75,42 @@ def main():
         # selected_solution.save(generate_file_name(args.games, game_name))
     elif selection == MenuSelection.LOAD_GAME:
         game_names = get_games(args.games)
-        game_name = select_game_name(game_names)
-        game_file = get_latest_game_file(args.games, game_name)
-        player_tiles = get_player_tiles()
-        #game_file = '/Users/pvishayanuroj/projects/scrabble/games/game2_20240301_000000.txt'
-        #player_tiles = PlayerTiles('GETHUTO')
+        #game_name = select_game_name(game_names)
+        #game_file = get_latest_game_file(args.games, game_name)
+        #player_tiles = get_player_tiles()
+        game_file = '/Users/pvishayanuroj/projects/scrabble/games/game2_20240301_000000.txt'
+        player_tiles = PlayerTiles('GETHUTO')
         scoreboard = Scoreboard(args.board, args.points)
         dictionary = Dictionary(args.dictionary, args.omit)
         board = Board(scoreboard.size, dictionary)
         board.load_state(game_file)
 
-        new_unique_turns = solve2(board, scoreboard, dictionary, player_tiles)
-        new_solutions = []
-        # converted_new_turns = list(map(lambda x: Turn(x.placements), new_unique_turns))
-        for turn in new_unique_turns:
-            new_solutions.append(Solution(board, turn, scoreboard))
-        new_solutions.sort(reverse=True)
-        for index, solution in enumerate(new_solutions[:MAX_SOLUTIONS_TO_SHOW]):
-            print(f"\n---------Solution {index + 1}-----------\n{solution}")
-
-        # print("OLD RUN")
-        # start_time = time.time()
-        # solution_boards = solve(dictionary, board, player_tiles)
-        # solutions = []
-        # turns = []
-        # for solution in solution_boards:
-        #     turns.append(Turn(solution.get_placements_from_diff(board)))
-        # dedup_start_time = time.time()
-        # unique_turns = dedup_turns(turns)
-        # dedup_end_time = time.time()
-        # print(f"DEDUP to {len(unique_turns)} solutions in {(dedup_end_time - dedup_start_time):.2f} secs.")
-        # print(f"TOTAL: {(time.time() - start_time):.2f} secs")
-        # for turn in unique_turns:
-        #     solutions.append(Solution(board, turn, scoreboard))
-        # solutions.sort(reverse=True)
-        # for index, solution in enumerate(solutions[:MAX_SOLUTIONS_TO_SHOW]):
+        # new_unique_turns = solve2(board, scoreboard, dictionary, player_tiles)
+        # new_solutions = []
+        # # converted_new_turns = list(map(lambda x: Turn(x.placements), new_unique_turns))
+        # for turn in new_unique_turns:
+        #     new_solutions.append(Solution2(board, turn, scoreboard))
+        # new_solutions.sort(reverse=True)
+        # for index, solution in enumerate(new_solutions[:MAX_SOLUTIONS_TO_SHOW]):
         #     print(f"\n---------Solution {index + 1}-----------\n{solution}")
+
+        print("OLD RUN")
+        start_time = time.time()
+        solution_boards = solve(dictionary, board, player_tiles)
+        solutions = []
+        turns = []
+        for solution in solution_boards:
+            turns.append(Turn(solution.get_placements_from_diff(board)))
+        dedup_start_time = time.time()
+        unique_turns = dedup_turns(turns)
+        dedup_end_time = time.time()
+        print(f"DEDUP to {len(unique_turns)} solutions in {(dedup_end_time - dedup_start_time):.2f} secs.")
+        print(f"TOTAL: {(time.time() - start_time):.2f} secs")
+        for turn in unique_turns:
+            solutions.append(Solution(board, turn, scoreboard))
+        solutions.sort(reverse=True)
+        for index, solution in enumerate(solutions[:MAX_SOLUTIONS_TO_SHOW]):
+            print(f"\n---------Solution {index + 1}-----------\n{solution}")
 
         # compare_solutions(board, scoreboard, unique_turns, new_unique_turns)
 

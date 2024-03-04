@@ -7,7 +7,7 @@ LETTER_PATTERN = r"^[a-zA-Z]$"
 class Letter:
     """Represents a single letter."""
 
-    def __init__(self, val: str, is_wildcard: bool) -> None:
+    def __init__(self, val: str, is_wildcard: bool = False) -> None:
         if not re.match(LETTER_PATTERN, val):
             raise ValueError("Expected a single letter.")
         self._val = val.upper()
@@ -20,6 +20,12 @@ class Letter:
         if not isinstance(other, Letter):
             return NotImplemented
         return self.val == other.val and self.is_wildcard == other.is_wildcard
+
+    def __str__(self):
+        return f"{self._val}, wildcard: {self._is_wildcard}"
+
+    def __repr__(self):
+        return f"{self._val}, wildcard: {self._is_wildcard}"
 
     @property
     def val(self) -> str:

@@ -4,6 +4,7 @@ from constants import ENDC, RED
 from dictionary import Dictionary
 from enums import Direction, MoveStatus, Shape, SolutionState
 from iterators import BoardIterator
+from letter import Letter
 from placement import Placement
 from position import Position
 from range import Range
@@ -42,6 +43,9 @@ class Board:
             output += '\n'
         return output
 
+    def __copy__(self):
+        return Board(self._size.copy(), self._dictionary, copy.deepcopy(self._state))
+
     @property
     def size(self) -> Size:
         return self._size
@@ -53,18 +57,9 @@ class Board:
                 return False
         return True
 
-    def copy(self):
-        return Board(self._size.copy(), self._dictionary, copy.deepcopy(self._state))
-
-    def copy_and_apply_turn(self, turn: Turn) -> Board:
-        new_board = self.copy()
-        for placement in turn.placements:
-            new_board.set_tile(placement)
-        return new_board
-
-    def copy_and_apply_turn2(self, turn: Turn2) -> Board:
-        new_board = self.copy()
-        for placement in turn.generate_placement_list():
+    def copy_and_apply_placements(self, placements: list[Placement]) -> Board:
+        new_board = copy.copy(self)
+        for placement in placements:
             new_board.set_tile(placement)
         return new_board
 
@@ -242,7 +237,7 @@ class Board:
         return positions
 
     def is_first_move_valid(self, position: Position, letter: str) -> tuple[MoveStatus, Board]:
-        new_board = self.copy()
+        new_board = self.__copy__()
         new_board.set_tile(Placement(position, letter))
         horizontal_chunk = new_board.get_chunk(position, Shape.HORIZONTAL)
         vertical_chunk = new_board.get_chunk(position, Shape.VERTICAL)
@@ -258,7 +253,7 @@ class Board:
             return (MoveStatus.PARTIAL_WORD, new_board)
 
     def is_move_valid(self, position: Position, letter: str, solution_state: SolutionState) -> tuple[MoveStatus, Board]:
-        new_board = self.copy()
+        new_board = self.__copy__()
         new_board.set_tile(Placement(position, letter))
         if solution_state == SolutionState.HORIZONTAL:
             vertical_chunk = new_board.get_chunk(position, Shape.VERTICAL)
@@ -392,7 +387,7 @@ class Board:
             tile = self.get_tile(position)
             other_tile = other.get_tile(position)
             if tile != other_tile:
-                placements.append(Placement(position, tile))
+                placements.append(Placement(position, Letter(tile)))
         return placements
 
     def get_score(self, turn: Turn, scoreboard: Scoreboard) -> int:

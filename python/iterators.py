@@ -27,61 +27,7 @@ class BoardIterator:
         return position
 
 
-class NextLetter:
-    """Struct to wrap a letter and remaining letters."""
-
-    def __init__(self, letter: str, next_letters: list[str]):
-        self._letter = letter
-        self._next_letters = next_letters
-
-    @property
-    def letter(self) -> str:
-        return self._letter
-
-    @property
-    def next_letters(self) -> list[str]:
-        return self._next_letters
-
-
 class NextLetterIterator:
-    """Iterator that returns a tuple of the Nth letter and the remaining letters after the Nth letter.
-
-    If there are duplicate letters in the given list, only a single of
-    the duplicates is returned in the letter portion of the tuple. The
-    remaining letters will contain the duplicates.
-
-    e.g. Given 'CATTO', this yields four iterations:
-    ('C', 'ATTO')
-    ('A', 'CTTO')
-    ('T', 'CATO')
-    ('O', 'CATT')
-    """
-
-    def __init__(self, letters: list[str]):
-        self._letters = letters
-        seen = set()
-        self._unique_letters = []
-        for letter in letters:
-            if letter not in seen:
-                self._unique_letters.append(letter)
-                seen.add(letter)
-        self._index = 0
-
-    def  __iter__(self):
-        return self
-
-    def __next__(self) -> NextLetter:
-        if self._index == len(self._unique_letters):
-            raise StopIteration
-        next_letters = self._letters.copy()
-        # Remove the *first occurrence* of the letter being returned.
-        next_letters.remove(self._unique_letters[self._index])
-        element = (self._unique_letters[self._index], next_letters)
-        self._index += 1
-        return element
-
-
-class NextLetterIterator2:
     """Iterator that returns a tuple of the Nth letter and the remaining letters after the Nth letter.
 
     If there are duplicate letters in the given list, only a single of

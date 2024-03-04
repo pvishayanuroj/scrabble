@@ -19,7 +19,7 @@ class PlayerTiles:
             if tile == "*":
                 self._num_wildcards += 1
             else:
-                self._letters.append(Letter(tile, False))
+                self._letters.append(Letter(tile))
         self._letters.sort()
 
     def __str__(self) -> str:

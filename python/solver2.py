@@ -4,7 +4,7 @@ from board import Board
 from constants import ALPHABET
 from dictionary import Dictionary
 from enums import Shape
-from iterators import ColIterator, NextLetterIterator2 as NextLetterIterator, RowIterator
+from iterators import ColIterator, NextLetterIterator, RowIterator
 from letter import Letter
 from placement import Placement
 from player_tiles import PlayerTiles

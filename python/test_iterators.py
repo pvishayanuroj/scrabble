@@ -1,6 +1,7 @@
 import unittest
 
 from iterators import ColIterator, NextLetterIterator, RowIterator
+from letter import Letter
 from position import Position
 from range import Range
 
@@ -8,18 +9,23 @@ from range import Range
 class TestIterators(unittest.TestCase):
 
     def test_next_move_iterator(self):
+        letters = [
+            Letter('C'),
+            Letter('A'),
+            Letter('T'),
+            Letter('T'),
+            Letter('O'),
+        ]
         result = [
             (letter, next_letters)
-            for (letter, next_letters) in NextLetterIterator(list("GETHUTO"))
+            for (letter, next_letters) in NextLetterIterator(letters)
         ]
 
         expected = [
-            ("G", ["E", "T", "H", "U", "T", "O"]),
-            ("E", ["G", "T", "H", "U", "T", "O"]),
-            ("T", ["G", "E", "H", "U", "T", "O"]),
-            ("H", ["G", "E", "T", "U", "T", "O"]),
-            ("U", ["G", "E", "T", "H", "T", "O"]),
-            ("O", ["G", "E", "T", "H", "U", "T"]),
+            (Letter('C'), [Letter('A'), Letter('T'), Letter('T'), Letter('O')]),
+            (Letter('A'), [Letter('C'), Letter('T'), Letter('T'), Letter('O')]),
+            (Letter('T'), [Letter('C'), Letter('A'), Letter('T'), Letter('O')]),
+            (Letter('O'), [Letter('C'), Letter('A'), Letter('T'), Letter('T')]),
         ]
         self.assertEqual(result, expected)
 

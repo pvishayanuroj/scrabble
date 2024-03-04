@@ -4,24 +4,25 @@ from board import Board
 from dictionary import Dictionary
 from enums import MoveStatus, SolutionState
 from iterators import NextLetterIterator
+from letter import Letter
 from position import Position
 from placement import Placement
+from player_tiles import PlayerTiles
 from scoreboard import Scoreboard
-from typing import List
 
 
-def solve_first_turn(dictionary: Dictionary, board: Board, scoreboard: Scoreboard, letters: List[str]) -> List[Board]:
+def solve_first_turn(dictionary: Dictionary, board: Board, scoreboard: Scoreboard, tiles: PlayerTiles) -> list[Board]:
     start_time = time.time()
-    boards = solve_first_turn_helper(dictionary, board, scoreboard, letters, [], SolutionState.NO_LETTERS)
+    boards = solve_first_turn_helper(dictionary, board, scoreboard, tiles.letters, [], SolutionState.NO_LETTERS)
     board_generation_time = time.time()
     print(f"Generated {len(boards)} boards in {(board_generation_time - start_time):.2f} secs")
-    valid_boards: List[Board] = list(filter(lambda x: x.is_state_valid()[0], boards))
+    valid_boards: list[Board] = list(filter(lambda x: x.is_state_valid()[0], boards))
     board_pruning_time = time.time()
     print(f"Prune down to {len(valid_boards)} boards in {(board_pruning_time - board_generation_time):.2f} secs")
     return valid_boards
 
 
-def solve_first_turn_helper(dictionary: Dictionary, board: Board, scoreboard: Scoreboard, letters: List[str], moves: List[Position], solution_state: SolutionState):
+def solve_first_turn_helper(dictionary: Dictionary, board: Board, scoreboard: Scoreboard, letters: list[Letter], moves: list[Position], solution_state: SolutionState):
     """Recursive solver method."""
     boards = []
     if solution_state == SolutionState.NO_LETTERS:
@@ -73,18 +74,18 @@ def solve_first_turn_helper(dictionary: Dictionary, board: Board, scoreboard: Sc
     return boards
 
 
-def solve(dictionary: Dictionary, board: Board, letters: List[str]) -> List[Board]:
+def solve(dictionary: Dictionary, board: Board, tiles: PlayerTiles) -> list[Board]:
     start_time = time.time()
-    boards = solve_helper(dictionary, board, letters, [], SolutionState.NO_LETTERS)
+    boards = solve_helper(dictionary, board, tiles.letters, [], SolutionState.NO_LETTERS)
     board_generation_time = time.time()
     print(f"Generated {len(boards)} boards in {(board_generation_time - start_time):.2f} secs")
-    valid_boards: List[Board] = list(filter(lambda x: x.is_state_valid()[0], boards))
+    valid_boards: list[Board] = list(filter(lambda x: x.is_state_valid()[0], boards))
     board_pruning_time = time.time()
     print(f"Prune down to {len(valid_boards)} boards in {(board_pruning_time - board_generation_time):.2f} secs")
     return valid_boards
 
 
-def solve_helper(dictionary: Dictionary, board: Board, letters: List[str], moves: List[Position], solution_state: SolutionState):
+def solve_helper(dictionary: Dictionary, board: Board, letters: list[Letter], moves: list[Position], solution_state: SolutionState):
     """Recursive solver method."""
     boards = []
     # If no letters, place the first letter.

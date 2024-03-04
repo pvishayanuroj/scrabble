@@ -2,14 +2,14 @@ from __future__ import annotations
 from board import Board
 from constants import ENDC, RED
 from scoreboard import Scoreboard
-from turns import Turn
+from turns2 import Turn
 
 
 class Solution:
     def __init__(self, original_board: Board, turn: Turn, scoreboard: Scoreboard):
         self._original_board = original_board
-        self._board = original_board.copy_and_apply_placements(turn.placements)
-        self._score = self._board.get_score(turn, scoreboard)
+        self._board = original_board.copy_and_apply_placements(turn.generate_placement_list())
+        self._score = self._board.get_score2(turn, scoreboard)
 
     @property
     def score(self) -> int:
