@@ -64,7 +64,7 @@ class Board:
 
     def copy_and_apply_turn2(self, turn: Turn2) -> Board:
         new_board = self.copy()
-        for placement in turn.placements:
+        for placement in turn.generate_placement_list():
             new_board.set_tile(placement)
         return new_board
 
@@ -422,14 +422,14 @@ class Board:
 
     def get_score2(self, turn: Turn2, scoreboard: Scoreboard) -> int:
         """Calculates the score based on applying the placements to the current board."""
-        placements = turn.placements
+        placements = turn.generate_placement_list()
         active_tiles = set([placement.position for placement in placements])
         score = 0
         if len(placements) == 1:
             for shape in [Shape.HORIZONTAL, Shape.VERTICAL]:
-                word = self.get_chunk(placements[0].position, shape)
-                if len(word) > 1:
-                    score += scoreboard.score_word(word, active_tiles)
+                word_position = self.get_chunk(placements[0].position, shape)
+                if len(word_position.word) > 1:
+                    score += scoreboard.score_word(word_position, active_tiles)
             if score == 0:
                 raise ValueError(f"Single turn solution does not form a word at least two letters long.")
         else:

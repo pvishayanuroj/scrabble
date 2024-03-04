@@ -37,9 +37,9 @@ class Turn:
     def shape(self) -> Shape:
         return self._shape
 
-    # Returns a list of placements in this turn, in random order.
-    @property
-    def placements(self) -> list[Placement]:
+    def generate_placement_list(self) -> list[Placement]:
+        """Converts the dictionary entries into a list of placements, in random order.
+        """
         return [
             Placement(position, letter) for position, letter in self._placements.items()
         ]

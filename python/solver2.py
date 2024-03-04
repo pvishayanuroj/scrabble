@@ -1,6 +1,7 @@
 import copy
 
 from board import Board
+from constants import ALPHABET
 from dictionary import Dictionary
 from enums import Shape
 from iterators import ColIterator, NextLetterIterator2 as NextLetterIterator, RowIterator
@@ -21,13 +22,25 @@ def solve(board: Board, scoreboard: Scoreboard, dictionary: Dictionary, tiles: P
     valid and deduped solutions in the form of turns.
     """
 
-    turns = _initial_expand(board, scoreboard, dictionary, tiles.letters)
-    valid_turns = _filter_valid_turns(turns, board)
-    deduped_turns = dedup_turns(valid_turns)
-    print(f"Generated {len(turns)} initial solutions.")
-    print(f"Validation resulted in {len(valid_turns)} solutions.")
-    print(f"Deduping resulted in {len(deduped_turns)} solutions.")
-    return deduped_turns
+    if tiles.num_wildcards == 1:
+        turns = []
+        for letter in ALPHABET:
+            turns.extend(_initial_expand(board, scoreboard, dictionary, tiles.letters + [Letter(letter, True)]))
+        print(f"Generated {len(turns)} initial solutions.")
+        valid_turns = _filter_valid_turns(turns, board)
+        deduped_turns = dedup_turns(valid_turns)
+        print(f"Generated {len(turns)} initial solutions.")
+        print(f"Validation resulted in {len(valid_turns)} solutions.")
+        print(f"Deduping resulted in {len(deduped_turns)} solutions.")
+        return deduped_turns
+    else:
+        turns = _initial_expand(board, scoreboard, dictionary, tiles.letters)
+        valid_turns = _filter_valid_turns(turns, board)
+        deduped_turns = dedup_turns(valid_turns)
+        print(f"Generated {len(turns)} initial solutions.")
+        print(f"Validation resulted in {len(valid_turns)} solutions.")
+        print(f"Deduping resulted in {len(deduped_turns)} solutions.")
+        return deduped_turns
 
 
 @timer

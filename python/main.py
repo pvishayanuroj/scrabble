@@ -39,8 +39,7 @@ def main():
 
         new_unique_turns = solve2(board, scoreboard, dictionary, player_tiles)
         new_solutions = []
-        converted_new_turns = list(map(lambda x: Turn(x.placements), new_unique_turns))
-        for turn in converted_new_turns:
+        for turn in new_unique_turns:
             new_solutions.append(Solution(board, turn, scoreboard))
         new_solutions.sort(reverse=True)
         for index, solution in enumerate(new_solutions[:MAX_SOLUTIONS_TO_SHOW]):
@@ -75,11 +74,11 @@ def main():
         # selected_solution.save(generate_file_name(args.games, game_name))
     elif selection == MenuSelection.LOAD_GAME:
         game_names = get_games(args.games)
-        # game_name = select_game_name(game_names)
-        # game_file = get_latest_game_file(args.games, game_name)
-        # player_tiles = get_player_tiles()
-        game_file = '/Users/pvishayanuroj/projects/scrabble/games/game2_20240301_000000.txt'
-        player_tiles = PlayerTiles('GETHUTO')
+        game_name = select_game_name(game_names)
+        game_file = get_latest_game_file(args.games, game_name)
+        player_tiles = get_player_tiles()
+        #game_file = '/Users/pvishayanuroj/projects/scrabble/games/game2_20240301_000000.txt'
+        #player_tiles = PlayerTiles('GETHUTO')
         scoreboard = Scoreboard(args.board, args.points)
         dictionary = Dictionary(args.dictionary, args.omit)
         board = Board(scoreboard.size, dictionary)
@@ -87,8 +86,8 @@ def main():
 
         new_unique_turns = solve2(board, scoreboard, dictionary, player_tiles)
         new_solutions = []
-        converted_new_turns = list(map(lambda x: Turn(x.placements), new_unique_turns))
-        for turn in converted_new_turns:
+        # converted_new_turns = list(map(lambda x: Turn(x.placements), new_unique_turns))
+        for turn in new_unique_turns:
             new_solutions.append(Solution(board, turn, scoreboard))
         new_solutions.sort(reverse=True)
         for index, solution in enumerate(new_solutions[:MAX_SOLUTIONS_TO_SHOW]):
