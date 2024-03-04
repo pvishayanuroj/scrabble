@@ -6,6 +6,7 @@
 New game: 'RSTEOAM'
 test3.txt: 'GETHUTO'
 test4.txt: 'NRALEFI'
+test5.txt: 'O*FLTEU'
 
 ## Performance
 
@@ -163,6 +164,44 @@ Generated 8767 boards in 34.38 secs
 Prune down to 970 boards in 3.27 secs
 DEDUP to 479 solutions in 0.05 secs.
 TOTAL: 37.93 secs
+```
+
+**test5**
+
+```
+Execution time for solver2._initial_expand: 3.115 seconds
+Execution time for solver2._initial_expand: 2.370 seconds
+Execution time for solver2._initial_expand: 2.462 seconds
+Execution time for solver2._initial_expand: 2.433 seconds
+Execution time for solver2._initial_expand: 1.650 seconds
+Execution time for solver2._initial_expand: 1.366 seconds
+Execution time for solver2._initial_expand: 2.068 seconds
+Execution time for solver2._initial_expand: 2.287 seconds
+Execution time for solver2._initial_expand: 3.142 seconds
+Execution time for solver2._initial_expand: 1.432 seconds
+Execution time for solver2._initial_expand: 1.725 seconds
+Execution time for solver2._initial_expand: 1.730 seconds
+Execution time for solver2._initial_expand: 2.379 seconds
+Execution time for solver2._initial_expand: 3.100 seconds
+Execution time for solver2._initial_expand: 1.560 seconds
+Execution time for solver2._initial_expand: 2.393 seconds
+Execution time for solver2._initial_expand: 1.413 seconds
+Execution time for solver2._initial_expand: 3.528 seconds
+Execution time for solver2._initial_expand: 3.531 seconds
+Execution time for solver2._initial_expand: 1.688 seconds
+Execution time for solver2._initial_expand: 1.298 seconds
+Execution time for solver2._initial_expand: 1.741 seconds
+Execution time for solver2._initial_expand: 1.861 seconds
+Execution time for solver2._initial_expand: 1.694 seconds
+Execution time for solver2._initial_expand: 2.044 seconds
+Execution time for solver2._initial_expand: 1.620 seconds
+Generated 95246 initial solutions.
+Execution time for solver2._filter_valid_turns: 31.678 seconds
+Execution time for util.dedup_turns: 18.938 seconds
+Generated 95246 initial solutions.
+Validation resulted in 44974 solutions.
+Deduping resulted in 7288 solutions.
+Execution time for solver2.solve: 106.265 seconds
 ```
 
 **newgame**
