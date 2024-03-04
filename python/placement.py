@@ -1,10 +1,11 @@
 from __future__ import annotations
+from letter import Letter
 from position import Position
 
 
 class Placement:
     """Describes a single move of a player's turn."""
-    def __init__(self, position: Position, letter: str):
+    def __init__(self, position: Position, letter: Letter):
         self._position = position
         self._letter = letter
 
@@ -18,12 +19,12 @@ class Placement:
         return self.position == other.position and self.letter == other.letter
 
     def __str__(self):
-        return f"{self._position}: {self._letter}"
+        return f"{self._position}: {self._letter.val}"
 
     @property
     def position(self) -> Position:
         return self._position
 
     @property
-    def letter(self) -> str:
+    def letter(self) -> Letter:
         return self._letter

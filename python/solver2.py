@@ -3,8 +3,10 @@ import copy
 from board import Board
 from dictionary import Dictionary
 from enums import Shape
-from iterators import ColIterator, NextLetterIterator, RowIterator
+from iterators import ColIterator, NextLetterIterator2 as NextLetterIterator, RowIterator
+from letter import Letter
 from placement import Placement
+from player_tiles import PlayerTiles
 from range import Range
 from scoreboard import Scoreboard
 from turns2 import Turn
@@ -12,13 +14,14 @@ from util import dedup_turns, timer
 
 
 @timer
-def solve(board: Board, scoreboard: Scoreboard, dictionary: Dictionary, letters: list[str]) -> list[Turn]:
+def solve(board: Board, scoreboard: Scoreboard, dictionary: Dictionary, tiles: PlayerTiles) -> list[Turn]:
     """A recursive solver.
 
     Given a list of player tiles and a board state, returns a list of
     valid and deduped solutions in the form of turns.
     """
-    turns = _initial_expand(board, scoreboard, dictionary, letters)
+
+    turns = _initial_expand(board, scoreboard, dictionary, tiles.letters)
     valid_turns = _filter_valid_turns(turns, board)
     deduped_turns = dedup_turns(valid_turns)
     print(f"Generated {len(turns)} initial solutions.")
@@ -28,7 +31,7 @@ def solve(board: Board, scoreboard: Scoreboard, dictionary: Dictionary, letters:
 
 
 @timer
-def _initial_expand(board: Board, scoreboard: Scoreboard, dictionary: Dictionary, letters: list[str]) -> list[Turn]:
+def _initial_expand(board: Board, scoreboard: Scoreboard, dictionary: Dictionary, letters: list[Letter]) -> list[Turn]:
     # For an empty board, any word must use the star tile.
     if board.is_empty():
         next_positions = [scoreboard.get_star_position()]
@@ -55,7 +58,7 @@ def _initial_expand(board: Board, scoreboard: Scoreboard, dictionary: Dictionary
     return turns
 
 
-def _expand(board: Board, dictionary: Dictionary, letters: list[str], turn: Turn) -> list[Turn]:
+def _expand(board: Board, dictionary: Dictionary, letters: list[Letter], turn: Turn) -> list[Turn]:
     """The recursive helper method used for second and later tile placements in a turn.
 
     Assumes that the given turn has at least one placement.
@@ -86,7 +89,7 @@ def _expand(board: Board, dictionary: Dictionary, letters: list[str], turn: Turn
             # Check if the new word formed by adding the letter is:
             # 1) A dictionary word. If so, store the turn.
             # 2) A substring. If so, keep recursing.
-            new_word = letter + existing_word
+            new_word = letter.val + existing_word
             word_type = dictionary.check(new_word)
             if word_type != None:
                 # Do not update the original reference, since this is
@@ -117,7 +120,7 @@ def _expand(board: Board, dictionary: Dictionary, letters: list[str], turn: Turn
             # Check if the new word formed by adding the letter is:
             # 1) A dictionary word. If so, store the turn.
             # 2) A substring. If so, keep recursing.
-            new_word = existing_word + letter
+            new_word = existing_word + letter.val
             word_type = dictionary.check(new_word)
             if word_type != None:
                 # Do not update the original reference, since this is
@@ -145,7 +148,7 @@ def _filter_valid_turns(turns: list[Turn], board: Board) -> list[Turn]:
 
 def _form_word(board: Board, turn: Turn, range: Range, shape: Shape) -> str:
     """Uses the board and the placements made to form the word made by selecting the range."""
-    letters = []
+    letters: list[str] = []
     if shape == Shape.HORIZONTAL:
         iterator = RowIterator(range)
     elif shape == Shape.VERTICAL:

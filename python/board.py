@@ -9,7 +9,7 @@ from position import Position
 from range import Range
 from scoreboard import Scoreboard
 from size import Size
-from typing import List, Union
+from typing import List, Optional, Union
 from turns import Turn
 from turns2 import Turn as Turn2
 from word_position import WordPosition
@@ -27,7 +27,7 @@ class MoveResult:
 
 
 class Board:
-    def __init__(self, size: Size, dictionary: Dictionary, state = None):
+    def __init__(self, size: Size, dictionary: Dictionary, state: Optional[list[list[str]]] = None):
         self._size = size
         self._dictionary = dictionary
         if state:
@@ -101,7 +101,7 @@ class Board:
     def set_tile(self, placement: Placement):
         if self.is_tile_filled(placement.position):
             raise ValueError(f"Cannot set non-empty tile: {placement.position}.")
-        self._state[placement.position.row][placement.position.col] = placement.letter
+        self._state[placement.position.row][placement.position.col] = placement.letter.val
 
     def get_adjacent_tile(self, position: Position, direction: Direction) -> Union[None, str]:
         """Returns the value of the adjacent tile or None if the tile is out of bounds."""
@@ -167,7 +167,6 @@ class Board:
         # Check that all tiles are next to at least one other tile.
         for position in BoardIterator(self._size):
             if self.is_tile_filled(position) and self.are_adjacent_tiles_empty(position):
-                print("FOOO")
                 return (False, [])
         chunks = []
         # Check rows.
@@ -341,7 +340,7 @@ class Board:
                 position = Position(placement.position.row, col)
                 tile = self.get_tile(position)
                 if tile == '':
-                    word += placement.letter
+                    word += placement.letter.val
                 else:
                     word += tile
             return (word, Range(start, end))
@@ -353,7 +352,7 @@ class Board:
                 position = Position(row, placement.position.col)
                 tile = self.get_tile(position)
                 if tile == '':
-                    word += placement.letter
+                    word += placement.letter.val
                 else:
                     word += tile
             return (word, Range(start, end))

@@ -1,5 +1,7 @@
 from __future__ import annotations
+from typing import Dict
 from enums import Shape
+from letter import Letter
 from position import Position
 from range import Range
 from turns import Placement
@@ -8,7 +10,7 @@ from turns import Placement
 class Turn:
     """Stores the tile placements made in a player's current turn."""
 
-    def __init__(self, placements, range: Range, shape: Shape):
+    def __init__(self, placements: Dict[Position, Letter], range: Range, shape: Shape):
         self._placements = placements
         self._range = range
         self._shape = shape
@@ -52,4 +54,4 @@ class Turn:
         self._range = Range(self._range.start, end)
 
     def get_tile_unchecked(self, position) -> str:
-        return self._placements[position]
+        return self._placements[position].val

@@ -1,4 +1,5 @@
 from enums import Direction
+from letter import Letter
 from position import Position
 from range import Range
 from size import Size
@@ -29,7 +30,7 @@ class BoardIterator:
 class NextLetter:
     """Struct to wrap a letter and remaining letters."""
 
-    def __init__(self, letter, next_letters: list[str]):
+    def __init__(self, letter: str, next_letters: list[str]):
         self._letter = letter
         self._next_letters = next_letters
 
@@ -43,7 +44,18 @@ class NextLetter:
 
 
 class NextLetterIterator:
-    """Iterator that returns a tuple of the Nth letter and the remaining letters after the Nth letter."""
+    """Iterator that returns a tuple of the Nth letter and the remaining letters after the Nth letter.
+
+    If there are duplicate letters in the given list, only a single of
+    the duplicates is returned in the letter portion of the tuple. The
+    remaining letters will contain the duplicates.
+
+    e.g. Given 'CATTO', this yields four iterations:
+    ('C', 'ATTO')
+    ('A', 'CTTO')
+    ('T', 'CATO')
+    ('O', 'CATT')
+    """
 
     def __init__(self, letters: list[str]):
         self._letters = letters
@@ -65,6 +77,52 @@ class NextLetterIterator:
         # Remove the *first occurrence* of the letter being returned.
         next_letters.remove(self._unique_letters[self._index])
         element = (self._unique_letters[self._index], next_letters)
+        self._index += 1
+        return element
+
+
+class NextLetterIterator2:
+    """Iterator that returns a tuple of the Nth letter and the remaining letters after the Nth letter.
+
+    If there are duplicate letters in the given list, only a single of
+    the duplicates is returned in the letter portion of the tuple. The
+    remaining letters will contain the duplicates.
+
+    e.g. Given 'CATTO', this yields four iterations:
+    ('C', 'ATTO')
+    ('A', 'CTTO')
+    ('T', 'CATO')
+    ('O', 'CATT')
+    """
+
+    def __init__(self, letters: list[Letter]):
+        self._letters = letters
+        seen = set()
+        self._unique_letters: list[Letter] = []
+        for letter in letters:
+            if letter.val not in seen:
+                self._unique_letters.append(letter)
+                seen.add(letter.val)
+        self._index = 0
+
+    def  __iter__(self):
+        return self
+
+    def __next__(self) -> tuple[Letter, list[Letter]]:
+        if self._index == len(self._unique_letters):
+            raise StopIteration
+
+        curr_letter = self._unique_letters[self._index]
+        next_letters = []
+        first_occurrence_found = False
+        # Remove the *first occurrence* of the letter being returned.
+        for letter in self._letters:
+            if curr_letter.val == letter.val and not first_occurrence_found:
+                first_occurrence_found = True
+            else:
+                next_letters.append(letter)
+
+        element = (curr_letter, next_letters)
         self._index += 1
         return element
 
