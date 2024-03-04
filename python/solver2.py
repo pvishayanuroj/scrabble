@@ -150,7 +150,7 @@ def _expand(board: Board, dictionary: Dictionary, letters: list[Letter], turn: T
 
 
 def _is_turn_valid(turn: Turn, board: Board) -> bool:
-    new_board = board.copy_and_apply_turn2(turn)
+    new_board = board.copy_and_apply_placements(turn.generate_placement_list())
     return new_board.is_state_valid()[0]
 
 

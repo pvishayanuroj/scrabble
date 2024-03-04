@@ -85,14 +85,14 @@ def main():
         board = Board(scoreboard.size, dictionary)
         board.load_state(game_file)
 
-        # new_unique_turns = solve2(board, scoreboard, dictionary, player_tiles)
-        # new_solutions = []
-        # # converted_new_turns = list(map(lambda x: Turn(x.placements), new_unique_turns))
-        # for turn in new_unique_turns:
-        #     new_solutions.append(Solution2(board, turn, scoreboard))
-        # new_solutions.sort(reverse=True)
-        # for index, solution in enumerate(new_solutions[:MAX_SOLUTIONS_TO_SHOW]):
-        #     print(f"\n---------Solution {index + 1}-----------\n{solution}")
+        new_unique_turns = solve2(board, scoreboard, dictionary, player_tiles)
+        new_solutions = []
+        # converted_new_turns = list(map(lambda x: Turn(x.placements), new_unique_turns))
+        for turn in new_unique_turns:
+            new_solutions.append(Solution2(board, turn, scoreboard))
+        new_solutions.sort(reverse=True)
+        for index, solution in enumerate(new_solutions[:MAX_SOLUTIONS_TO_SHOW]):
+            print(f"\n---------Solution {index + 1}-----------\n{solution}")
 
         print("OLD RUN")
         start_time = time.time()
