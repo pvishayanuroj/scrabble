@@ -15,7 +15,9 @@ class Turn:
         self._range = range
         self._shape = shape
 
-    def __eq__(self, other: Turn):
+    def __eq__(self, other: object):
+        if not isinstance(other, Turn):
+            return NotImplemented
         if len(self._placements) != len(other._placements):
             return False
         for key, value in self._placements.items():

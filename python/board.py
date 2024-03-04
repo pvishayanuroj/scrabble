@@ -236,7 +236,7 @@ class Board:
                 raise ValueError(f"Previous moves must form a line: {previous_moves}")
         return positions
 
-    def is_first_move_valid(self, position: Position, letter: str) -> tuple[MoveStatus, Board]:
+    def is_first_move_valid(self, position: Position, letter: Letter) -> tuple[MoveStatus, Board]:
         new_board = self.__copy__()
         new_board.set_tile(Placement(position, letter))
         horizontal_chunk = new_board.get_chunk(position, Shape.HORIZONTAL)
@@ -251,8 +251,9 @@ class Board:
             return (MoveStatus.COMPLETE_WORD, new_board)
         if is_substring:
             return (MoveStatus.PARTIAL_WORD, new_board)
+        raise RuntimeError("Impossible state")
 
-    def is_move_valid(self, position: Position, letter: str, solution_state: SolutionState) -> tuple[MoveStatus, Board]:
+    def is_move_valid(self, position: Position, letter: Letter, solution_state: SolutionState) -> tuple[MoveStatus, Board]:
         new_board = self.__copy__()
         new_board.set_tile(Placement(position, letter))
         if solution_state == SolutionState.HORIZONTAL:
@@ -286,6 +287,7 @@ class Board:
                 return (MoveStatus.COMPLETE_WORD, new_board)
             if is_substring:
                 return (MoveStatus.PARTIAL_WORD, new_board)
+            raise RuntimeError("Impossible state")
         else:
             raise ValueError(f"Unsupported solution state {solution_state}")
 
@@ -428,10 +430,10 @@ class Board:
             next_position = curr_position.move(turn.shape.start_direction)
             non_active_tile = self.get_tile_checked(next_position)
             active_tile = turn.get_tile_checked(next_position)
-            if non_active_tile != None and non_active_tile != '':
+            if non_active_tile is not None and non_active_tile != '':
                 foo = (Letter(non_active_tile), next_position, False)
                 start_letters.append(foo)
-            elif active_tile != None:
+            elif active_tile is not None:
                 foo = (active_tile, next_position, True)
                 start_letters.append(foo)
             else:
@@ -445,10 +447,10 @@ class Board:
             next_position = curr_position.move(turn.shape.end_direction)
             non_active_tile = self.get_tile_checked(next_position)
             active_tile = turn.get_tile_checked(next_position)
-            if non_active_tile != None and non_active_tile != '':
+            if non_active_tile is not None and non_active_tile != '':
                 foo = (Letter(non_active_tile), next_position, False)
                 end_letters.append(foo)
-            elif active_tile != None:
+            elif active_tile is not None:
                 foo = (active_tile, next_position, True)
                 end_letters.append(foo)
             else:
@@ -463,32 +465,32 @@ class Board:
         cross_shape = turn.shape.opposite
         for placement in placements:
             curr_position = placement.position
-            start_letters: list[Tuple[Letter, Position, bool]] = []
+            start_letters_cross: list[Tuple[Letter, Position, bool]] = []
             while True:
                 next_position = curr_position.move(cross_shape.start_direction)
                 non_active_tile = self.get_tile_checked(next_position)
-                if non_active_tile != None and non_active_tile != '':
+                if non_active_tile is not None and non_active_tile != '':
                     foo = (Letter(non_active_tile), next_position, False)
-                    start_letters.append(foo)
+                    start_letters_cross.append(foo)
                 else:
                     break
                 curr_position = next_position
-            start_letters.reverse()
+            start_letters_cross.reverse()
 
             curr_position = placement.position
-            end_letters: list[Tuple[Letter, Position, bool]] = []
+            end_letters_cross: list[Tuple[Letter, Position, bool]] = []
             while True:
                 next_position = curr_position.move(cross_shape.end_direction)
                 non_active_tile = self.get_tile_checked(next_position)
-                if non_active_tile != None and non_active_tile != '':
+                if non_active_tile is not None and non_active_tile != '':
                     foo = (Letter(non_active_tile), next_position, False)
-                    start_letters.append(foo)
+                    end_letters_cross.append(foo)
                 else:
                     break
                 curr_position = next_position
 
             foo = (placement.letter, placement.position, True)
-            word = start_letters + [foo] + end_letters
+            word = start_letters_cross + [foo] + end_letters_cross
             words.append(word)
 
         score = 0

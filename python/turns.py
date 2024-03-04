@@ -10,7 +10,9 @@ class Turn:
         self._placements = copy.deepcopy(placements)
         self._placements.sort()
 
-    def __eq__(self, other: Turn):
+    def __eq__(self, other: object):
+        if not isinstance(other, Turn):
+            return NotImplemented
         return self.placements == other.placements
 
     def __str__(self):

@@ -17,7 +17,7 @@ class WordPosition:
         return self._word
 
     @property
-    def shape(self) -> str:
+    def shape(self) -> Shape:
         return self._shape
 
     def __str__(self):

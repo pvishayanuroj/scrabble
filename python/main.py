@@ -14,9 +14,9 @@ from solution import Solution
 from solution2 import Solution as Solution2
 from turns import Turn, dedup_turns
 from turns2 import Turn as Turn2
+from typing import Optional
 from solver import solve, solve_first_turn
 from solver2 import solve as solve2
-from typing import Union
 
 
 def main():
@@ -34,6 +34,8 @@ def main():
     #selection = MenuSelection.LOAD_GAME
     if selection == MenuSelection.NEW_GAME:
         player_tiles = get_player_tiles()
+        if player_tiles is None:
+            return
         scoreboard = Scoreboard(args.board, args.points)
         dictionary = Dictionary(args.dictionary, args.omit)
         board = Board(scoreboard.size, dictionary)
@@ -78,8 +80,12 @@ def main():
         #game_name = select_game_name(game_names)
         #game_file = get_latest_game_file(args.games, game_name)
         #player_tiles = get_player_tiles()
-        game_file = '/Users/pvishayanuroj/projects/scrabble/games/game2_20240301_000000.txt'
-        player_tiles = PlayerTiles('GETHUTO')
+        # if player_tiles is None:
+        #     return
+        # game_file = '/Users/pvishayanuroj/projects/scrabble/games/game2_20240301_000000.txt'
+        # player_tiles = PlayerTiles('GETHUTO')
+        game_file = '/Users/pvishayanuroj/projects/scrabble/games/game3_20240301_000000.txt'
+        player_tiles = PlayerTiles('NRALEFI')
         scoreboard = Scoreboard(args.board, args.points)
         dictionary = Dictionary(args.dictionary, args.omit)
         board = Board(scoreboard.size, dictionary)
@@ -121,7 +127,7 @@ def main():
 
 
 def compare_solutions(board: Board, scoreboard: Scoreboard, old_turns: list[Turn], new_turns: list[Turn2]):
-    converted_new_turns = list(map(lambda x: Turn(x.placements), new_turns))
+    converted_new_turns = list(map(lambda x: Turn(x.generate_placement_list()), new_turns))
     missing_new_turns = []
     for turn in converted_new_turns:
         if turn not in old_turns:
@@ -194,7 +200,7 @@ def get_latest_game_file(directory_path: str, game_name: str) -> str:
     return sorted(files, reverse=True)[0]
 
 
-def get_player_tiles() -> PlayerTiles:
+def get_player_tiles() -> Optional[PlayerTiles]:
     while True:
         user_input = input("\nEnter tiles ('*' for wildcard): ")
         try:
@@ -209,7 +215,7 @@ def get_player_tiles() -> PlayerTiles:
     return player_tiles
 
 
-def select_solution(solutions: list[Solution]) -> Union[Solution, None]:
+def select_solution(solutions: list[Solution]) -> Optional[Solution]:
     print(f"Generated {len(solutions)} solutions")
     for index, solution in enumerate(solutions):
         print(f"\n---------Solution {index + 1}-----------\n{solution}")
