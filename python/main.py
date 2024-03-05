@@ -86,6 +86,10 @@ def main():
         # player_tiles = PlayerTiles('GETHUTO')
         #game_file = '/Users/pvishayanuroj/projects/scrabble/games/game3_20240301_000000.txt'
         #player_tiles = PlayerTiles('NRALEFI')
+        # game_file = '/Users/pvishayanuroj/projects/scrabble/games/game3_20240301_000000.txt'
+        # player_tiles = PlayerTiles('NRALEFI')
+        # game_file = '/Users/pvishayanuroj/projects/scrabble/games/game4_20240301_000000.txt'
+        # player_tiles = PlayerTiles('O*FLTEU')
         scoreboard = Scoreboard(args.board, args.points)
         dictionary = Dictionary(args.dictionary, args.omit)
         board = Board(scoreboard.size, dictionary)

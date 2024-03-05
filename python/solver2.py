@@ -4,7 +4,7 @@ from board import Board
 from constants import ALPHABET
 from dictionary import Dictionary
 from enums import Shape
-from iterators import ColIterator, NextLetterIterator, RowIterator
+from iterators import ColIterator, NextLetterIterator, RowIterator, WildcardIterator
 from letter import Letter
 from placement import Placement
 from player_tiles import PlayerTiles
@@ -21,26 +21,16 @@ def solve(board: Board, scoreboard: Scoreboard, dictionary: Dictionary, tiles: P
     Given a list of player tiles and a board state, returns a list of
     valid and deduped solutions in the form of turns.
     """
-
-    if tiles.num_wildcards == 1:
-        turns = []
-        for letter in ALPHABET:
-            turns.extend(_initial_expand(board, scoreboard, dictionary, tiles.letters + [Letter(letter, True)]))
-        print(f"Generated {len(turns)} initial solutions.")
-        valid_turns = _filter_valid_turns(turns, board)
-        deduped_turns = dedup_turns(valid_turns)
-        print(f"Generated {len(turns)} initial solutions.")
-        print(f"Validation resulted in {len(valid_turns)} solutions.")
-        print(f"Deduping resulted in {len(deduped_turns)} solutions.")
-        return deduped_turns
-    else:
-        turns = _initial_expand(board, scoreboard, dictionary, tiles.letters)
-        valid_turns = _filter_valid_turns(turns, board)
-        deduped_turns = dedup_turns(valid_turns)
-        print(f"Generated {len(turns)} initial solutions.")
-        print(f"Validation resulted in {len(valid_turns)} solutions.")
-        print(f"Deduping resulted in {len(deduped_turns)} solutions.")
-        return deduped_turns
+    turns = []
+    for wildcard_letters in WildcardIterator(tiles.num_wildcards):
+        letters = tiles.letters + wildcard_letters
+        turns.extend(_initial_expand(board, scoreboard, dictionary, letters))
+    print(f"Generated {len(turns)} initial solutions.")
+    valid_turns = _filter_valid_turns(turns, board)
+    print(f"Validation resulted in {len(valid_turns)} solutions.")
+    deduped_turns = dedup_turns(valid_turns)
+    print(f"Deduping resulted in {len(deduped_turns)} solutions.")
+    return deduped_turns
 
 
 @timer
