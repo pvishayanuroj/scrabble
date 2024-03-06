@@ -5,7 +5,7 @@ import os
 import re
 import time
 from board import Board
-from constants import GAME_FILE_PATTERN, MAX_SOLUTIONS_TO_SHOW
+from constants import GAME_FILE_PATTERN, MAX_SOLUTIONS_TO_SHOW, TEST_FILE_PATTERN
 from dictionary import Dictionary
 from enums import MenuSelection
 from player_tiles import PlayerTiles
@@ -27,6 +27,7 @@ def main():
     parser.add_argument("--board", default="boards/official.txt", help="Board file path (default: %(default)s)")
     parser.add_argument("--points", default="points.txt", help="Points file path (default: %(default)s)")
     parser.add_argument("--games", default="games/", help="Games directory path (default: %(default)s)")
+    parser.add_argument("--tests", default="testcases/", help="Test case directory path (default: %(default)s)")
 
     args = parser.parse_args()
 
@@ -77,19 +78,11 @@ def main():
         # selected_solution.save(generate_file_name(args.games, game_name))
     elif selection == MenuSelection.LOAD_GAME:
         game_names = get_games(args.games)
-        game_name = select_game_name(game_names)
+        game_name = select_option('Available games:', game_names)
         game_file = get_latest_game_file(args.games, game_name)
         player_tiles = get_player_tiles()
         if player_tiles is None:
             return
-        # game_file = '/Users/pvishayanuroj/projects/scrabble/games/game2_20240301_000000.txt'
-        # player_tiles = PlayerTiles('GETHUTO')
-        #game_file = '/Users/pvishayanuroj/projects/scrabble/games/game3_20240301_000000.txt'
-        #player_tiles = PlayerTiles('NRALEFI')
-        # game_file = '/Users/pvishayanuroj/projects/scrabble/games/game3_20240301_000000.txt'
-        # player_tiles = PlayerTiles('NRALEFI')
-        # game_file = '/Users/pvishayanuroj/projects/scrabble/games/game4_20240301_000000.txt'
-        # player_tiles = PlayerTiles('O*FLTEU')
         scoreboard = Scoreboard(args.board, args.points)
         dictionary = Dictionary(args.dictionary, args.omit)
         board = Board(scoreboard.size, dictionary)
@@ -128,6 +121,26 @@ def main():
         # if not selected_solution:
         #     return
         # selected_solution.save(generate_file_name(args.games, game_name))
+    elif selection == MenuSelection.RUN_TEST:
+        test_names = get_tests(args.tests)
+        test_name = select_option('Test cases:', test_names)
+        if test_name is None:
+            return
+        state_file = os.path.join(args.tests, f'{test_name}_state.txt')
+        player_tiles_file = os.path.join(args.tests, f'{test_name}_tiles.txt')
+        scoreboard = Scoreboard(args.board, args.points)
+        dictionary = Dictionary(args.dictionary, args.omit)
+        board = Board(scoreboard.size, dictionary)
+        board.load_state(state_file)
+        player_tiles = read_player_tiles_file(player_tiles_file)
+
+        turns = solve2(board, scoreboard, dictionary, player_tiles)
+        solutions = []
+        for turn in turns:
+            solutions.append(Solution2(board, turn, scoreboard))
+        solutions.sort(reverse=True)
+        for index, solution in enumerate(solutions[:MAX_SOLUTIONS_TO_SHOW]):
+            print(f"\n---------Solution {index + 1}-----------\n{solution}")
 
 
 def compare_solutions(board: Board, scoreboard: Scoreboard, old_turns: list[Turn], new_turns: list[Turn2]):
@@ -174,7 +187,7 @@ def select_menu_option() -> MenuSelection:
 
 
 def get_games(directory_path: str) -> list[str]:
-    games = set()
+    games: set[str] = set()
     for filename in os.listdir(directory_path):
         match = re.match(GAME_FILE_PATTERN, filename)
         if match:
@@ -182,15 +195,17 @@ def get_games(directory_path: str) -> list[str]:
     return sorted(list(games))
 
 
-def select_game_name(game_names: list[str]) -> str:
-    print("\nAvailable games:")
-    for index, option in enumerate(game_names):
+def select_option(prompt: str, values: list[str]) -> Optional[str]:
+    print(f"\n{prompt}")
+    for index, option in enumerate(values):
         print(f"{index + 1}) {option}")
     while True:
         try:
             user_input = input("\nMake a selection: ")
             value = int(user_input)
-            return game_names[value - 1]
+            return values[value - 1]
+        except KeyboardInterrupt:
+            return None
         except:
             print("Invalid input. Select a valid option.")
 
@@ -217,6 +232,20 @@ def get_player_tiles() -> Optional[PlayerTiles]:
             print('Invalid input')
     print(player_tiles)
     return player_tiles
+
+
+def get_tests(directory_path: str) -> list[str]:
+    tests: set[str] = set()
+    for filename in os.listdir(directory_path):
+        match = re.match(TEST_FILE_PATTERN, filename)
+        if match:
+            tests.add(match.groups()[0])
+    return sorted(list(tests))
+
+
+def read_player_tiles_file(filepath: str) -> PlayerTiles:
+    with open(filepath, 'r') as file:
+        return PlayerTiles(file.readline())
 
 
 def select_solution(solutions: list[Solution]) -> Optional[Solution]:

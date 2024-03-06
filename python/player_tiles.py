@@ -1,15 +1,14 @@
 import re
 
+from constants import PLAYER_TILES_PATTERN
 from letter import Letter
-
-INPUT_PATTERN = r"^[A-Z*]{1,7}$"
 
 
 class PlayerTiles:
     def __init__(self, raw_tiles: str):
         # Validate.
         tiles = raw_tiles.upper().replace(" ", "").strip()
-        if not re.match(INPUT_PATTERN, tiles):
+        if not re.match(PLAYER_TILES_PATTERN, tiles):
             raise ValueError(f"Invalid tiles: {tiles}")
 
         # Processing

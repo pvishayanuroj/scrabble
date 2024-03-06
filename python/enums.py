@@ -87,7 +87,7 @@ class MoveStatus(Enum):
 class MenuSelection(IntEnum):
     NEW_GAME = 1,
     LOAD_GAME = 2,
-    LOAD_FROM_FILE = 3,
+    RUN_TEST = 3,
     QUIT = 4,
 
     def __str__(self):
@@ -95,8 +95,8 @@ class MenuSelection(IntEnum):
             return "New game"
         if self == MenuSelection.LOAD_GAME:
             return "Load game"
-        if self == MenuSelection.LOAD_FROM_FILE:
-            return "Load from file"
+        if self == MenuSelection.RUN_TEST:
+            return "Run test"
         if self == MenuSelection.QUIT:
             return "Quit"
         return "Missing menu option description"
