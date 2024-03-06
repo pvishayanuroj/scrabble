@@ -78,7 +78,13 @@ def main():
         # selected_solution.save(generate_file_name(args.games, game_name))
     elif selection == MenuSelection.LOAD_GAME:
         game_names = get_games(args.games)
-        game_name = select_option('Available games:', game_names)
+        if len(game_names) < 1:
+            print('No saved games found. Exiting.')
+            return
+        if len(game_names) == 1:
+            game_name = game_names[0]
+        else:
+            game_name = select_option('Available games:', game_names)
         if game_name is None:
             return
         game_file = get_latest_game_file(args.games, game_name)
