@@ -1,4 +1,5 @@
 import copy
+from typing import Dict
 
 from board import Board
 from constants import ALPHABET
@@ -46,8 +47,16 @@ def _initial_expand(board: Board, scoreboard: Scoreboard, dictionary: Dictionary
     for (letter, remaining_letters) in NextLetterIterator(letters):
         for position in next_positions:
             placement = Placement(position, letter)
+            words: Dict[Shape, tuple[str, Range]] = {}
             for shape in [Shape.HORIZONTAL, Shape.VERTICAL]:
-                (word, range) = board.get_word_from_placement(placement, shape)
+                words[shape] = board.get_word_from_placement(placement, shape)
+
+            for shape in [Shape.HORIZONTAL, Shape.VERTICAL]:
+                (cross_word, _) = words[shape.opposite]
+                if len(cross_word) > 1 and not dictionary.is_word(cross_word):
+                    continue
+
+                (word, range) = words[shape]
                 word_type = dictionary.check(word)
                 if word_type is not None:
                     placements = {placement.position: placement.letter}
@@ -55,7 +64,7 @@ def _initial_expand(board: Board, scoreboard: Scoreboard, dictionary: Dictionary
                     # If this is a valid word, store this as a solution.
                     if word_type.is_word:
                         turns.append(turn)
-                    # If this is a substring, recurse from this branch.
+                    # If this is a substring, recurse into this branch.
                     if word_type.is_substring:
                         turns.extend(_expand(board, dictionary, remaining_letters, turn))
     return turns

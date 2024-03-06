@@ -79,6 +79,8 @@ def main():
     elif selection == MenuSelection.LOAD_GAME:
         game_names = get_games(args.games)
         game_name = select_option('Available games:', game_names)
+        if game_name is None:
+            return
         game_file = get_latest_game_file(args.games, game_name)
         player_tiles = get_player_tiles()
         if player_tiles is None:
@@ -129,7 +131,7 @@ def main():
         state_file = os.path.join(args.tests, f'{test_name}_state.txt')
         player_tiles_file = os.path.join(args.tests, f'{test_name}_tiles.txt')
         scoreboard = Scoreboard(args.board, args.points)
-        dictionary = Dictionary(args.dictionary, args.omit)
+        dictionary = Dictionary(args.dictionary)
         board = Board(scoreboard.size, dictionary)
         board.load_state(state_file)
         player_tiles = read_player_tiles_file(player_tiles_file)
@@ -141,6 +143,26 @@ def main():
         solutions.sort(reverse=True)
         for index, solution in enumerate(solutions[:MAX_SOLUTIONS_TO_SHOW]):
             print(f"\n---------Solution {index + 1}-----------\n{solution}")
+
+        # print("OLD RUN")
+        # start_time = time.time()
+        # solution_boards = solve(dictionary, board, player_tiles)
+        # solutions = []
+        # old_run_turns = []
+        # for solution in solution_boards:
+        #     old_run_turns.append(Turn(solution.get_placements_from_diff(board)))
+        # dedup_start_time = time.time()
+        # unique_turns = dedup_turns(old_run_turns)
+        # dedup_end_time = time.time()
+        # print(f"DEDUP to {len(unique_turns)} solutions in {(dedup_end_time - dedup_start_time):.2f} secs.")
+        # print(f"TOTAL: {(time.time() - start_time):.2f} secs")
+        # for turn in unique_turns:
+        #     solutions.append(Solution(board, turn, scoreboard))
+        # solutions.sort(reverse=True)
+        # for index, solution in enumerate(solutions[:MAX_SOLUTIONS_TO_SHOW]):
+        #     print(f"\n---------Solution {index + 1}-----------\n{solution}")
+
+        # compare_solutions(board, scoreboard, unique_turns, turns)
 
 
 def compare_solutions(board: Board, scoreboard: Scoreboard, old_turns: list[Turn], new_turns: list[Turn2]):

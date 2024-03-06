@@ -10,7 +10,7 @@ class Dictionary:
     The expected file format is one word per line.
     """
 
-    def __init__(self, filepath: str, omitted_words_filepath: Optional[str]):
+    def __init__(self, filepath: str, omitted_words_filepath: Optional[str] = None):
         self._words: set[str] = set()
         self._substrings: set[str] = set()
         self._substring_types: Dict[str, WordType] = {}

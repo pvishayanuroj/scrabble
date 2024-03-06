@@ -10,7 +10,7 @@ test5.txt: 'O*FLTEU'
 
 ## Performance
 
-Initial timings w/ basic substring check:
+#### Initial timings w/ basic substring check:
 
 **test3**
 
@@ -26,7 +26,7 @@ Generated 1149690 boards in 230.51 secs
 Prune down to 970 boards in 420.45 secs
 ```
 
-Fixed bug where the same branch was being explored, i.e. letters were not being deduped for branch exploration. However, they were incorrectly being deduped when passing the list of remaining letter tiles to the next recursion. e.g. 'GETHUTO' would explore 'GET' twice but miss finding 'GHETTO'.
+#### Fixed bug where the same branch was being explored, i.e. letters were not being deduped for branch exploration. However, they were incorrectly being deduped when passing the list of remaining letter tiles to the next recursion. e.g. 'GETHUTO' would explore 'GET' twice but miss finding 'GHETTO'.
 
 **test3**
 
@@ -44,7 +44,7 @@ Prune down to 970 boards in 416.09 secs
 
 No change expected, since there are no duplicate letters in the hand tiles.
 
-Implemented further checks to mostly store boards with full words, rather than valid substrings.
+#### Implemented further checks to mostly store boards with full words, rather than valid substrings.
 
 **test3**
 
@@ -60,7 +60,7 @@ Generated 3221 boards in 13.55 secs
 Prune down to 828 boards in 1.18 secs
 ```
 
-Removed board copying in favor of using the turn structure to track the tile placements. Ended up generating more solutions than the old approach.
+#### Removed board copying in favor of using the turn structure to track the tile placements. Ended up generating more solutions than the old approach.
 
 **test3**
 
@@ -78,7 +78,7 @@ Pruned down to 970 solutions in 4.65 secs
 DEDUP to 479 solutions. TOTAL: 8.64 secs
 ```
 
-Made a fix to the original approach since it was missing solutions. On the second letter tile placement, the shape was being incorrectly calculated since the previous and next move were not being considered. Only the previous move, single move was considered.
+#### Made a fix to the original approach since it was missing solutions. On the second letter tile placement, the shape was being incorrectly calculated since the previous and next move were not being considered. Only the previous move, single move was considered.
 
 **test3**
 
@@ -128,7 +128,7 @@ DEDUP to 2464 solutions in 2.03 secs.
 TOTAL: 21.92 secs
 ```
 
-Improved deduping for new approach.
+#### Improved deduping for new approach.
 
 **test3**
 
@@ -220,6 +220,67 @@ Generated 6668 boards in 16.68 secs
 Prune down to 6668 boards in 1.73 secs
 DEDUP to 2464 solutions in 2.08 secs.
 TOTAL: 22.11 secs
+```
+
+#### Reduced the number of initial moves by checking the "cross" word for the first tile. (The number of results are different because I realized I kept using the omit list for testing even though it continually gets updated).
+
+**test3**
+
+```
+Execution time for solver2._initial_expand: 0.229 seconds
+Generated 387 initial solutions.
+Execution time for solver2._filter_valid_turns: 0.186 seconds
+Validation resulted in 325 solutions.
+Execution time for util.dedup_turns: 0.009 seconds
+Deduping resulted in 204 solutions.
+Execution time for solver2.solve: 0.424 seconds
+```
+
+**test4**
+
+```
+Generated 1198 initial solutions.
+Execution time for solver2._filter_valid_turns: 0.534 seconds
+Validation resulted in 970 solutions.
+Execution time for util.dedup_turns: 0.073 seconds
+Deduping resulted in 479 solutions.
+Execution time for solver2.solve: 1.574 seconds
+```
+
+**test5**
+```
+Execution time for solver2._initial_expand: 1.438 seconds
+Execution time for solver2._initial_expand: 1.192 seconds
+Execution time for solver2._initial_expand: 1.273 seconds
+Execution time for solver2._initial_expand: 1.296 seconds
+Execution time for solver2._initial_expand: 0.847 seconds
+Execution time for solver2._initial_expand: 0.682 seconds
+Execution time for solver2._initial_expand: 1.044 seconds
+Execution time for solver2._initial_expand: 1.053 seconds
+Execution time for solver2._initial_expand: 1.484 seconds
+Execution time for solver2._initial_expand: 0.704 seconds
+Execution time for solver2._initial_expand: 0.843 seconds
+Execution time for solver2._initial_expand: 0.848 seconds
+Execution time for solver2._initial_expand: 1.193 seconds
+Execution time for solver2._initial_expand: 1.538 seconds
+Execution time for solver2._initial_expand: 0.722 seconds
+Execution time for solver2._initial_expand: 1.130 seconds
+Execution time for solver2._initial_expand: 0.703 seconds
+Execution time for solver2._initial_expand: 1.888 seconds
+Execution time for solver2._initial_expand: 1.794 seconds
+Execution time for solver2._initial_expand: 0.834 seconds
+Execution time for solver2._initial_expand: 0.633 seconds
+Execution time for solver2._initial_expand: 0.853 seconds
+Execution time for solver2._initial_expand: 0.871 seconds
+Execution time for solver2._initial_expand: 0.791 seconds
+Execution time for solver2._initial_expand: 0.916 seconds
+Execution time for solver2._initial_expand: 0.775 seconds
+Generated 45002 initial solutions.
+Execution time for solver2._filter_valid_turns: 15.268 seconds
+Validation resulted in 45002 solutions.
+Execution time for util.dedup_turns: 21.128 seconds
+Deduping resulted in 7300 solutions.
+Execution time for solver2.solve: 63.750 seconds
 ```
 
 ## Unit testing
