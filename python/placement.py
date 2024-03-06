@@ -23,6 +23,9 @@ class Placement:
     def __str__(self):
         return f"{self._position}: {self._letter.val}"
 
+    def __repr__(self):
+        return f"{self._position}: {self._letter.val}"
+
     @property
     def position(self) -> Position:
         return self._position

@@ -38,14 +38,14 @@ class Position:
     def col(self) -> int:
         return self._col
 
-    def move(self, direction: Direction) -> Position:
-        """Moves one unit in the given direction."""
+    def move(self, direction: Direction, steps: int = 1) -> Position:
+        """Moves N steps in the given direction."""
         if direction == Direction.UP:
-            return Position(self.row - 1, self.col)
+            return Position(self.row - steps, self.col)
         if direction == Direction.DOWN:
-            return Position(self.row + 1, self.col)
+            return Position(self.row + steps, self.col)
         if direction == Direction.LEFT:
-            return Position(self.row, self.col - 1)
+            return Position(self.row, self.col - steps)
         if direction == Direction.RIGHT:
-            return Position(self.row, self.col + 1)
+            return Position(self.row, self.col + steps)
         raise ValueError(f"Invalid direction: {direction}")

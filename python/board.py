@@ -110,14 +110,18 @@ class Board:
 
         Returns the string formed by this traversal. Note that the returned string is in always
         left-to-right or up-to-down order even if the traversal direction is left or up.
+
+        This is EXCLUSIVE of the given position. i.e. The returned string starts from the
+        adjacent tile.
         """
         output = ''
-        curr_position = position
+        curr_position = position.move(direction)
         while True:
             curr_tile = self.get_tile_checked(curr_position)
             if curr_tile is None or curr_tile == '':
                 break
             output += curr_tile
+            curr_position = curr_position.move(direction)
         if direction == Direction.LEFT or direction == Direction.UP:
             return output[::-1]
         return output

@@ -9,6 +9,7 @@ from iterators import ColIterator, NextLetterIterator, RowIterator, WildcardIter
 from letter import Letter
 from placement import Placement
 from player_tiles import PlayerTiles
+from position import Position
 from range import Range
 from scoreboard import Scoreboard
 from turns2 import Turn
@@ -16,22 +17,31 @@ from util import dedup_turns, timer
 
 
 @timer
-def solve(board: Board, scoreboard: Scoreboard, dictionary: Dictionary, tiles: PlayerTiles) -> list[Turn]:
+def solve(board: Board, scoreboard: Scoreboard, dictionary: Dictionary, tiles: PlayerTiles, validate: bool = False) -> list[Turn]:
     """A recursive solver.
 
     Given a list of player tiles and a board state, returns a list of
     valid and deduped solutions in the form of turns.
+
+    Validation is off by default since this adds extra time and the
+    generated solutions should be valid. However, this can be turned on
+    as a debugging option.
     """
     turns = []
     for wildcard_letters in WildcardIterator(tiles.num_wildcards):
         letters = tiles.letters + wildcard_letters
         turns.extend(_initial_expand(board, scoreboard, dictionary, letters))
     print(f"Generated {len(turns)} initial solutions.")
-    valid_turns = _filter_valid_turns(turns, board)
-    print(f"Validation resulted in {len(valid_turns)} solutions.")
-    deduped_turns = dedup_turns(valid_turns)
-    print(f"Deduping resulted in {len(deduped_turns)} solutions.")
-    return deduped_turns
+    if validate:
+        valid_turns = _filter_valid_turns(turns, board)
+        print(f"Validation resulted in {len(valid_turns)} solutions.")
+        deduped_turns = dedup_turns(turns)
+        print(f"Deduping resulted in {len(deduped_turns)} solutions.")
+        return deduped_turns
+    else:
+        deduped_turns = dedup_turns(turns)
+        print(f"Deduping resulted in {len(deduped_turns)} solutions.")
+        return deduped_turns
 
 
 @timer
@@ -89,6 +99,8 @@ def _expand(board: Board, dictionary: Dictionary, letters: list[Letter], turn: T
         existing_word_start_position = start_position.move(shape.start_direction.reverse)
         existing_word_range = Range(existing_word_start_position, turn.range.end)
         existing_word = _form_word(board, turn, existing_word_range, shape)
+        prefix_word = board.get_adjacent_tiles_until_empty(start_position, shape.start_direction)
+
         for (letter, remaining_letters) in NextLetterIterator(letters):
             placement = Placement(start_position, letter)
 
@@ -101,14 +113,15 @@ def _expand(board: Board, dictionary: Dictionary, letters: list[Letter], turn: T
             # Check if the new word formed by adding the letter is:
             # 1) A dictionary word. If so, store the turn.
             # 2) A substring. If so, keep recursing.
-            new_word = letter.val + existing_word
+            new_word = prefix_word + letter.val + existing_word
+
             word_type = dictionary.check(new_word)
             if word_type is not None:
                 # Do not update the original reference, since this is
                 # being used by all the branches.
                 updated_turn = copy.copy(turn)
                 updated_turn.add_placement(placement)
-                updated_turn.update_range_start(start_position)
+                updated_turn.update_range_start(start_position.move(shape.start_direction, len(prefix_word)))
                 if word_type.is_word:
                     turns.append(updated_turn)
                 if word_type.is_substring:
@@ -120,6 +133,8 @@ def _expand(board: Board, dictionary: Dictionary, letters: list[Letter], turn: T
         existing_word_end_position = end_position.move(shape.end_direction.reverse)
         existing_word_range = Range(turn.range.start, existing_word_end_position)
         existing_word = _form_word(board, turn, existing_word_range, shape)
+        suffix_word = board.get_adjacent_tiles_until_empty(end_position, shape.end_direction)
+
         for (letter, remaining_letters) in NextLetterIterator(letters):
             placement = Placement(end_position, letter)
 
@@ -132,14 +147,14 @@ def _expand(board: Board, dictionary: Dictionary, letters: list[Letter], turn: T
             # Check if the new word formed by adding the letter is:
             # 1) A dictionary word. If so, store the turn.
             # 2) A substring. If so, keep recursing.
-            new_word = existing_word + letter.val
+            new_word = existing_word + letter.val + suffix_word
             word_type = dictionary.check(new_word)
             if word_type is not None:
                 # Do not update the original reference, since this is
                 # being used by all the branches.
                 updated_turn = copy.copy(turn)
                 updated_turn.add_placement(placement)
-                updated_turn.update_range_end(end_position)
+                updated_turn.update_range_end(end_position.move(shape.end_direction, len(suffix_word)))
                 if word_type.is_word:
                     turns.append(updated_turn)
                 if word_type.is_substring:
