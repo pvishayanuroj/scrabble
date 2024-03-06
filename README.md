@@ -341,6 +341,63 @@ Deduping resulted in 7300 solutions.
 Execution time for solver2.solve: 50.211 seconds
 ```
 
+#### Implemented a faster dedup turns method using a hash.
+
+**test3**
+
+```
+Execution time for solver2._initial_expand: 0.214 seconds
+Generated 325 initial solutions.
+Execution time for solver2._dedup_turns: 0.011 seconds
+Deduping resulted in 204 solutions.
+Execution time for solver2.solve: 0.225 seconds
+```
+
+**test4**
+
+```
+Execution time for solver2._initial_expand: 0.904 seconds
+Generated 970 initial solutions.
+Execution time for solver2._dedup_turns: 0.059 seconds
+Deduping resulted in 479 solutions.
+Execution time for solver2.solve: 0.964 seconds
+```
+
+**test5**
+
+```
+Execution time for solver2._initial_expand: 1.514 seconds
+Execution time for solver2._initial_expand: 1.254 seconds
+Execution time for solver2._initial_expand: 1.315 seconds
+Execution time for solver2._initial_expand: 1.343 seconds
+Execution time for solver2._initial_expand: 0.879 seconds
+Execution time for solver2._initial_expand: 0.716 seconds
+Execution time for solver2._initial_expand: 1.091 seconds
+Execution time for solver2._initial_expand: 1.127 seconds
+Execution time for solver2._initial_expand: 1.611 seconds
+Execution time for solver2._initial_expand: 0.753 seconds
+Execution time for solver2._initial_expand: 0.901 seconds
+Execution time for solver2._initial_expand: 0.911 seconds
+Execution time for solver2._initial_expand: 1.296 seconds
+Execution time for solver2._initial_expand: 1.779 seconds
+Execution time for solver2._initial_expand: 0.762 seconds
+Execution time for solver2._initial_expand: 1.214 seconds
+Execution time for solver2._initial_expand: 0.754 seconds
+Execution time for solver2._initial_expand: 1.904 seconds
+Execution time for solver2._initial_expand: 1.939 seconds
+Execution time for solver2._initial_expand: 0.906 seconds
+Execution time for solver2._initial_expand: 0.689 seconds
+Execution time for solver2._initial_expand: 0.917 seconds
+Execution time for solver2._initial_expand: 0.934 seconds
+Execution time for solver2._initial_expand: 0.839 seconds
+Execution time for solver2._initial_expand: 0.978 seconds
+Execution time for solver2._initial_expand: 0.830 seconds
+Generated 45002 initial solutions.
+Execution time for solver2._dedup_turns: 2.158 seconds
+Deduping resulted in 7300 solutions.
+Execution time for solver2.solve: 31.324 seconds
+```
+
 ## Unit testing
 
 Unit tests need to be run from the python/ directory for some reason. e.g.

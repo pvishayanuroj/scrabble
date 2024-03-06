@@ -14,6 +14,11 @@ class Letter:
         self._is_wildcard = is_wildcard
 
     def __lt__(self, other: Letter) -> bool:
+        """Non wildcard letters come before wildcard letters."""
+        if self.val == other.val:
+            if self._is_wildcard:
+                return True
+            return False
         return self.val < other.val
 
     def __eq__(self, other: object) -> bool:

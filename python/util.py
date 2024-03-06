@@ -18,15 +18,6 @@ def timer(func):
     return wrapper
 
 
-@timer
-def dedup_turns(turns: list[Turn]) -> list[Turn]:
-    unique_turns = []
-    for turn in turns:
-        if turn not in unique_turns:
-            unique_turns.append(turn)
-    return unique_turns
-
-
 def get_all_substrings(word: str) -> set[str]:
     """Returns a set all substrings of the given word.
 

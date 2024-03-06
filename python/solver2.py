@@ -9,11 +9,10 @@ from iterators import ColIterator, NextLetterIterator, RowIterator, WildcardIter
 from letter import Letter
 from placement import Placement
 from player_tiles import PlayerTiles
-from position import Position
 from range import Range
 from scoreboard import Scoreboard
 from turns2 import Turn
-from util import dedup_turns, timer
+from util import timer
 
 
 @timer
@@ -35,11 +34,11 @@ def solve(board: Board, scoreboard: Scoreboard, dictionary: Dictionary, tiles: P
     if validate:
         valid_turns = _filter_valid_turns(turns, board)
         print(f"Validation resulted in {len(valid_turns)} solutions.")
-        deduped_turns = dedup_turns(turns)
+        deduped_turns = _dedup_turns(turns)
         print(f"Deduping resulted in {len(deduped_turns)} solutions.")
         return deduped_turns
     else:
-        deduped_turns = dedup_turns(turns)
+        deduped_turns = _dedup_turns(turns)
         print(f"Deduping resulted in {len(deduped_turns)} solutions.")
         return deduped_turns
 
@@ -161,6 +160,11 @@ def _expand(board: Board, dictionary: Dictionary, letters: list[Letter], turn: T
                     turns.extend(_expand(board, dictionary, remaining_letters, updated_turn))
 
     return turns
+
+
+@timer
+def _dedup_turns(turns: list[Turn]) -> list[Turn]:
+    return list(set(turns))
 
 
 def _is_turn_valid(turn: Turn, board: Board) -> bool:

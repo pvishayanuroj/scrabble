@@ -13,6 +13,8 @@ class Placement:
         return Placement(self._position, self._letter)
 
     def __lt__(self, other: Placement):
+        if self.position == other.position:
+            return self.letter < other.letter
         return self.position < other.position
 
     def __eq__(self, other: object):

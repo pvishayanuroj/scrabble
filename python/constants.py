@@ -12,4 +12,4 @@ MAX_LENGTH_WORD_SCORE = 50
 MAX_SOLUTIONS_TO_SHOW = 5
 
 # Used by the position hashing function.
-MAX_BOARD_SIZE = 10000
+MAX_BOARD_SIZE = 15

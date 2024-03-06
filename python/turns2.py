@@ -25,6 +25,16 @@ class Turn:
                 return False
         return True
 
+    def __hash__(self):
+        placements = self.generate_placement_list()
+        placements.sort()
+        value = ''
+        for placement in placements:
+            value += (str(placement.position.__hash__())
+                      + placement.letter.val
+                      + '*' if placement.letter.is_wildcard else '')
+        return hash(value)
+
     def __copy__(self):
         return Turn(self._placements.copy(), self._range, self._shape)
 
