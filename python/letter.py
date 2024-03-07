@@ -32,6 +32,9 @@ class Letter:
     def __repr__(self):
         return f"{self._val}{'*' if self._is_wildcard else ''}"
 
+    def serialize(self):
+        return f'{self._val.lower() if self._is_wildcard else self._val}'
+
     @property
     def val(self) -> str:
         return self._val

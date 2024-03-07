@@ -28,6 +28,10 @@ class Placement:
     def __repr__(self):
         return f"{self._position}: {self._letter.val}"
 
+    def serialize(self) -> str:
+        return f'{self._position.index}{self._letter.serialize()}'
+
+
     @property
     def position(self) -> Position:
         return self._position

@@ -11,7 +11,6 @@ from enums import MenuSelection
 from player_tiles import PlayerTiles
 from scoreboard import Scoreboard
 from solution import Solution
-from solution2 import Solution as Solution2
 from turns import Turn, dedup_turns
 from turns2 import Turn as Turn2
 from typing import Optional
@@ -41,10 +40,7 @@ def main():
         dictionary = Dictionary(args.dictionary, args.omit)
         board = Board(scoreboard.size, dictionary)
 
-        new_unique_turns = solve2(board, scoreboard, dictionary, player_tiles)
-        new_solutions = []
-        for turn in new_unique_turns:
-            new_solutions.append(Solution2(board, turn, scoreboard))
+        new_solutions = solve2(board, scoreboard, dictionary, player_tiles)
         new_solutions.sort(reverse=True)
         for index, solution in enumerate(new_solutions[:MAX_SOLUTIONS_TO_SHOW]):
             print(f"\n---------Solution {index + 1}-----------\n{solution}")
@@ -96,11 +92,7 @@ def main():
         board = Board(scoreboard.size, dictionary)
         board.load_state(game_file)
 
-        new_unique_turns = solve2(board, scoreboard, dictionary, player_tiles)
-        new_solutions = []
-        for turn in new_unique_turns:
-            new_solutions.append(Solution2(board, turn, scoreboard))
-        new_solutions.sort(reverse=True)
+        new_solutions = solve2(board, scoreboard, dictionary, player_tiles)
         for index, solution in enumerate(new_solutions[:MAX_SOLUTIONS_TO_SHOW]):
             print(f"\n---------Solution {index + 1}-----------\n{solution}")
 
@@ -142,11 +134,7 @@ def main():
         board.load_state(state_file)
         player_tiles = read_player_tiles_file(player_tiles_file)
 
-        turns = solve2(board, scoreboard, dictionary, player_tiles)
-        solutions = []
-        for turn in turns:
-            solutions.append(Solution2(board, turn, scoreboard))
-        solutions.sort(reverse=True)
+        solutions = solve2(board, scoreboard, dictionary, player_tiles)
         for index, solution in enumerate(solutions[:MAX_SOLUTIONS_TO_SHOW]):
             print(f"\n---------Solution {index + 1}-----------\n{solution}")
 
@@ -169,6 +157,24 @@ def main():
         #     print(f"\n---------Solution {index + 1}-----------\n{solution}")
 
         # compare_solutions(board, scoreboard, unique_turns, turns)
+    elif selection == MenuSelection.REGEN_GOLDENS:
+        test_names = get_tests(args.tests)
+        test_name = select_option('Test cases:', test_names)
+        if test_name is None:
+            return
+        state_file = os.path.join(args.tests, f'{test_name}_state.txt')
+        player_tiles_file = os.path.join(args.tests, f'{test_name}_tiles.txt')
+        golden_file = os.path.join(args.tests, f'{test_name}_golden.txt')
+        scoreboard = Scoreboard(args.board, args.points)
+        dictionary = Dictionary(args.dictionary)
+        board = Board(scoreboard.size, dictionary)
+        board.load_state(state_file)
+        player_tiles = read_player_tiles_file(player_tiles_file)
+
+        solutions = solve2(board, scoreboard, dictionary, player_tiles)
+        with open(golden_file, 'w') as file:
+            file.writelines(map(lambda solution: solution.serialize() + '\n', solutions))
+        print(f'Wrote {golden_file}')
 
 
 def compare_solutions(board: Board, scoreboard: Scoreboard, old_turns: list[Turn], new_turns: list[Turn2]):

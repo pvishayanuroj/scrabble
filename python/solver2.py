@@ -11,12 +11,13 @@ from placement import Placement
 from player_tiles import PlayerTiles
 from range import Range
 from scoreboard import Scoreboard
+from solution2 import Solution
 from turns2 import Turn
 from util import timer
 
 
 @timer
-def solve(board: Board, scoreboard: Scoreboard, dictionary: Dictionary, tiles: PlayerTiles, validate: bool = False) -> list[Turn]:
+def solve(board: Board, scoreboard: Scoreboard, dictionary: Dictionary, tiles: PlayerTiles, validate: bool = False) -> list[Solution]:
     """A recursive solver.
 
     Given a list of player tiles and a board state, returns a list of
@@ -26,24 +27,29 @@ def solve(board: Board, scoreboard: Scoreboard, dictionary: Dictionary, tiles: P
     generated solutions should be valid. However, this can be turned on
     as a debugging option.
     """
-    turns = []
-    for wildcard_letters in WildcardIterator(tiles.num_wildcards):
-        letters = tiles.letters + wildcard_letters
-        turns.extend(_initial_expand(board, scoreboard, dictionary, letters))
+    turns = _turns_finder(board, scoreboard, dictionary, tiles)
     print(f"Generated {len(turns)} initial solutions.")
     if validate:
         valid_turns = _filter_valid_turns(turns, board)
         print(f"Validation resulted in {len(valid_turns)} solutions.")
         deduped_turns = _dedup_turns(turns)
         print(f"Deduping resulted in {len(deduped_turns)} solutions.")
-        return deduped_turns
     else:
         deduped_turns = _dedup_turns(turns)
         print(f"Deduping resulted in {len(deduped_turns)} solutions.")
-        return deduped_turns
+    return _score_turns(board, scoreboard, deduped_turns)
 
 
 @timer
+def _turns_finder(board: Board, scoreboard: Scoreboard, dictionary: Dictionary, tiles: PlayerTiles) -> list[Turn]:
+    """Expands all wildcards and runs the """
+    turns = []
+    for wildcard_letters in WildcardIterator(tiles.num_wildcards):
+        letters = tiles.letters + wildcard_letters
+        turns.extend(_initial_expand(board, scoreboard, dictionary, letters))
+    return turns
+
+
 def _initial_expand(board: Board, scoreboard: Scoreboard, dictionary: Dictionary, letters: list[Letter]) -> list[Turn]:
     # For an empty board, any word must use the star tile.
     if board.is_empty():
@@ -196,3 +202,12 @@ def _form_word(board: Board, turn: Turn, range: Range, shape: Shape) -> str:
         return ''.join(letters)
     else:
         raise ValueError(f"Unsupported enum value: {shape}")
+
+
+@timer
+def _score_turns(board: Board, scoreboard: Scoreboard, turns: list[Turn]) -> list[Solution]:
+    solutions = []
+    for turn in turns:
+        solutions.append(Solution(board, scoreboard, turn))
+    solutions.sort(reverse=True)
+    return solutions

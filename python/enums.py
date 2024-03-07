@@ -3,19 +3,19 @@ from enum import Enum, IntEnum
 
 
 class Tile(Enum):
-    NORMAL = "--"
-    DOUBLE_LETTER = "DL"
-    TRIPLE_LETTER = "TL"
-    DOUBLE_WORD = "DW"
-    TRIPLE_WORD = "TW"
-    STAR = "ST"
+    NORMAL = '--'
+    DOUBLE_LETTER = 'DL'
+    TRIPLE_LETTER = 'TL'
+    DOUBLE_WORD = 'DW'
+    TRIPLE_WORD = 'TW'
+    STAR = 'ST'
 
     @staticmethod
     def from_string(value: str):
         for tile in Tile:
             if tile.value == value:
                 return tile
-        raise ValueError(f"Invalid tile enum value: |{value}|")
+        raise ValueError(f'Invalid tile enum value: |{value}|')
 
 
 class Direction(Enum):
@@ -34,7 +34,7 @@ class Direction(Enum):
             return Direction.DOWN
         if self == Direction.DOWN:
             return Direction.UP
-        raise ValueError(f"Invalid direction enum: {self}")
+        raise ValueError(f'Invalid direction enum: {self}')
 
 
 class Shape(Enum):
@@ -50,7 +50,7 @@ class Shape(Enum):
             return Direction.UP
         if self == Shape.HORIZONTAL:
             return Direction.LEFT
-        raise ValueError(f"Invalid shape enum: {self}")
+        raise ValueError(f'Invalid shape enum: {self}')
 
     @property
     def end_direction(self) -> Direction:
@@ -59,7 +59,7 @@ class Shape(Enum):
             return Direction.DOWN
         if self == Shape.HORIZONTAL:
             return Direction.RIGHT
-        raise ValueError(f"Invalid shape enum: {self}")
+        raise ValueError(f'Invalid shape enum: {self}')
 
     @property
     def opposite(self) -> Shape:
@@ -68,7 +68,7 @@ class Shape(Enum):
             return Shape.HORIZONTAL
         if self == Shape.HORIZONTAL:
             return Shape.VERTICAL
-        raise ValueError(f"Invalid shape enum: {self}")
+        raise ValueError(f'Invalid shape enum: {self}')
 
 class SolutionState(Enum):
     NO_LETTERS = 1,
@@ -88,15 +88,18 @@ class MenuSelection(IntEnum):
     NEW_GAME = 1,
     LOAD_GAME = 2,
     RUN_TEST = 3,
-    QUIT = 4,
+    REGEN_GOLDENS = 4,
+    QUIT = 5,
 
     def __str__(self):
         if self == MenuSelection.NEW_GAME:
-            return "New game"
+            return 'New game'
         if self == MenuSelection.LOAD_GAME:
-            return "Load game"
+            return 'Load game'
         if self == MenuSelection.RUN_TEST:
-            return "Run test"
+            return 'Run test'
+        if self == MenuSelection.REGEN_GOLDENS:
+            return 'Regen goldens'
         if self == MenuSelection.QUIT:
-            return "Quit"
-        return "Missing menu option description"
+            return 'Quit'
+        return 'Missing menu option description'

@@ -22,7 +22,7 @@ class Position:
         return self.col < other.col
 
     def __hash__(self):
-        return self.row * MAX_BOARD_SIZE + self.col
+        return self.index
 
     def __str__(self):
         return f"[{self.row}, {self.col}]"
@@ -37,6 +37,10 @@ class Position:
     @property
     def col(self) -> int:
         return self._col
+
+    @property
+    def index(self) -> int:
+        return self.row * MAX_BOARD_SIZE + self.col
 
     def move(self, direction: Direction, steps: int = 1) -> Position:
         """Moves N steps in the given direction."""

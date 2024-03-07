@@ -30,7 +30,7 @@ class Turn:
         placements.sort()
         value = ''
         for placement in placements:
-            value += (str(placement.position.__hash__())
+            value += (str(placement.position.index)
                       + placement.letter.val
                       + '*' if placement.letter.is_wildcard else '')
         return hash(value)
@@ -70,3 +70,8 @@ class Turn:
 
     def get_tile_checked(self, position: Position) -> Optional[Letter]:
         return self._placements.get(position)
+
+    def serialize(self) -> str:
+        placements = self.generate_placement_list()
+        placements.sort()
+        return '|'.join(map(lambda placement: placement.serialize(), placements))
