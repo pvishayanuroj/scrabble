@@ -21,11 +21,12 @@ def solve(board: Board, scoreboard: Scoreboard, dictionary: Dictionary, tiles: P
     """A recursive solver.
 
     Given a list of player tiles and a board state, returns a list of
-    valid and deduped solutions in the form of turns.
+    valid and deduped solutions, sorted by descending score.
 
     Validation is off by default since this adds extra time and the
     generated solutions should be valid. However, this can be turned on
     as a debugging option.
+
     """
     turns = _turns_finder(board, scoreboard, dictionary, tiles)
     print(f"Generated {len(turns)} initial solutions.")
@@ -42,7 +43,7 @@ def solve(board: Board, scoreboard: Scoreboard, dictionary: Dictionary, tiles: P
 
 @timer
 def _turns_finder(board: Board, scoreboard: Scoreboard, dictionary: Dictionary, tiles: PlayerTiles) -> list[Turn]:
-    """Expands all wildcards and runs the """
+    """Expands all wildcards and runs the recursive solver."""
     turns = []
     for wildcard_letters in WildcardIterator(tiles.num_wildcards):
         letters = tiles.letters + wildcard_letters

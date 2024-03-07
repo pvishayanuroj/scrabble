@@ -41,7 +41,6 @@ def main():
         board = Board(scoreboard.size, dictionary)
 
         new_solutions = solve2(board, scoreboard, dictionary, player_tiles)
-        new_solutions.sort(reverse=True)
         for index, solution in enumerate(new_solutions[:MAX_SOLUTIONS_TO_SHOW]):
             print(f"\n---------Solution {index + 1}-----------\n{solution}")
 
