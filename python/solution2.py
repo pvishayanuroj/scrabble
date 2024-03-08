@@ -9,7 +9,7 @@ class Solution:
     def __init__(self, original_board: Board, scoreboard: Scoreboard, turn: Turn):
         self._original_board = original_board
         self._turn = turn
-        self._score = original_board.get_score2(turn, scoreboard)
+        self._score = original_board.get_score(turn, scoreboard)
 
     @property
     def score(self) -> int:

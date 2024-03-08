@@ -1,10 +1,7 @@
-from typing import List
-from constants import MAX_LENGTH_WORD_SCORE, MAX_PLAYER_TILES
-from enums import Direction, Shape, Tile
+from enums import Tile
 from iterators import BoardIterator
 from position import Position
 from size import Size
-from word_position import WordPosition
 
 
 class Scoreboard:
@@ -70,39 +67,6 @@ class Scoreboard:
             if self.get_tile(position) == Tile.STAR:
                 return position
         raise ValueError("No star tile found.")
-
-    def score_word(
-        self, word_position: WordPosition, active_tiles: set[Position]
-    ) -> int:
-        """Returns the point value of the word starting at the given position.
-
-        The active_tiles list describes which tiles bonus tiles are allowed to be used.
-        """
-        curr_position = word_position.position
-        direction = (
-            Direction.DOWN if word_position.shape == Shape.VERTICAL else Direction.RIGHT
-        )
-        word_multipler = 1
-        total = 0
-        for letter in word_position.word:
-            letter_value = self._letter_values[letter]
-            tile = self.get_tile(curr_position)
-            letter_multiplier = 1
-            if curr_position in active_tiles:
-                if tile == Tile.DOUBLE_WORD or tile == Tile.STAR:
-                    word_multipler *= 2
-                elif tile == Tile.TRIPLE_WORD:
-                    word_multipler *= 3
-                elif tile == Tile.DOUBLE_LETTER:
-                    letter_multiplier = 2
-                elif tile == Tile.TRIPLE_LETTER:
-                    letter_multiplier = 3
-            total += letter_value * letter_multiplier
-            curr_position = curr_position.move(direction)
-        total *= word_multipler
-        if len(active_tiles) == MAX_PLAYER_TILES:
-            total += MAX_LENGTH_WORD_SCORE
-        return total
 
     @property
     def size(self) -> Size:

@@ -2,9 +2,9 @@ from __future__ import annotations
 from typing import Dict, Optional
 from enums import Shape
 from letter import Letter
+from placement import Placement
 from position import Position
 from range import Range
-from turns import Placement
 
 
 class Turn:

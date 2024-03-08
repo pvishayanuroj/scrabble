@@ -2,7 +2,7 @@ from __future__ import annotations
 import copy
 from constants import ENDC, MAX_LENGTH_WORD_SCORE, MAX_PLAYER_TILES, RED
 from dictionary import Dictionary
-from enums import Direction, MoveStatus, Shape, SolutionState, Tile
+from enums import Direction, Shape
 from iterators import BoardIterator
 from letter import Letter
 from placement import Placement
@@ -11,7 +11,6 @@ from range import Range
 from scoreboard import Scoreboard
 from size import Size
 from typing import List, Optional, Tuple, Union
-from turns import Turn
 from turns2 import Turn as Turn2
 from word_position import WordPosition
 
@@ -19,12 +18,6 @@ from word_position import WordPosition
 def get_chunks(value: List[str]) -> List[str]:
     chunks = ''.join(map(lambda x: '-' if x == '' else x, value)).split('-')
     return list(filter(lambda x: len(x) > 1, chunks))
-
-
-class MoveResult:
-    def __init__(self, board: Board, status: MoveStatus):
-        self._board = board
-        self._status = status
 
 
 class Board:
@@ -192,145 +185,6 @@ class Board:
                 positions.append(position)
         return positions
 
-    def get_next_tile_moves(self, previous_moves: List[Position]) -> List[Position]:
-        """The possible tiles that a second or later letter can be placed.
-
-        Previous moves cannot be empty.
-        Possible tiles will be within a straight line of previous moves.
-        """
-        if len(previous_moves) == 0:
-            raise ValueError(f"Previous moves list cannot be empty.")
-
-        positions = []
-        # If this is the second tile, then it can be placed at any of the four directions
-        # from the first tile.
-        if len(previous_moves) == 1:
-            position = previous_moves[0]
-            for direction in Direction:
-                next_empty_position = self.get_next_empty_tile(position, direction)
-                if next_empty_position is not None:
-                    positions.append(next_empty_position)
-        else:
-            # If this is the third or later tile, it must be placed within the same line formed
-            # by the previous tiles.
-            distinct_cols = set(map(lambda x: x.col, previous_moves))
-            distinct_rows = set(map(lambda x: x.row, previous_moves))
-
-            if len(distinct_cols) == 1:
-                # Previous tiles form a vertical line.
-                col = distinct_cols.pop()
-                rows = list(map(lambda x: x.row, previous_moves))
-                top = self.get_next_empty_tile(Position(min(rows), col), Direction.UP)
-                bottom = self.get_next_empty_tile(Position(max(rows), col), Direction.DOWN)
-                if top:
-                    positions.append(top)
-                if bottom:
-                    positions.append(bottom)
-            elif len(distinct_rows) == 1:
-                # Previous tiles form a horizontal line.
-                row = distinct_rows.pop()
-                cols = list(map(lambda x: x.col, previous_moves))
-                left = self.get_next_empty_tile(Position(row, min(cols)), Direction.LEFT)
-                right = self.get_next_empty_tile(Position(row, min(cols)), Direction.RIGHT)
-                if left:
-                    positions.append(left)
-                if right:
-                    positions.append(right)
-            else:
-                raise ValueError(f"Previous moves must form a line: {previous_moves}")
-        return positions
-
-    def is_first_move_valid(self, position: Position, letter: Letter) -> tuple[MoveStatus, Board]:
-        new_board = self.__copy__()
-        new_board.set_tile(Placement(position, letter))
-        horizontal_chunk = new_board.get_chunk(position, Shape.HORIZONTAL)
-        vertical_chunk = new_board.get_chunk(position, Shape.VERTICAL)
-        is_substring = self._dictionary.is_substring(horizontal_chunk.word) or self._dictionary.is_substring(vertical_chunk.word)
-        is_word = self._dictionary.is_word(horizontal_chunk.word) or self._dictionary.is_word(vertical_chunk.word)
-        if not is_word and not is_substring:
-            return (MoveStatus.INVALID, new_board)
-        if is_word and is_substring:
-            return (MoveStatus.PARTIAL_AND_COMPLETE_WORD, new_board)
-        if is_word:
-            return (MoveStatus.COMPLETE_WORD, new_board)
-        if is_substring:
-            return (MoveStatus.PARTIAL_WORD, new_board)
-        raise RuntimeError("Impossible state")
-
-    def is_move_valid(self, position: Position, letter: Letter, solution_state: SolutionState) -> tuple[MoveStatus, Board]:
-        new_board = self.__copy__()
-        new_board.set_tile(Placement(position, letter))
-        if solution_state == SolutionState.HORIZONTAL:
-            vertical_chunk = new_board.get_chunk(position, Shape.VERTICAL)
-            if len(vertical_chunk.word) > 1 and not self._dictionary.is_word(vertical_chunk.word):
-                return (MoveStatus.INVALID, new_board)
-            horizontal_chunk = new_board.get_chunk(position, Shape.HORIZONTAL)
-            is_word = self._dictionary.is_word(horizontal_chunk.word)
-            is_substring = self._dictionary.is_substring(horizontal_chunk.word)
-            if not is_word and not is_substring:
-                return (MoveStatus.INVALID, new_board)
-            if is_word and is_substring:
-                return (MoveStatus.PARTIAL_AND_COMPLETE_WORD, new_board)
-            if is_word:
-                return (MoveStatus.COMPLETE_WORD, new_board)
-            if is_substring:
-                return (MoveStatus.PARTIAL_WORD, new_board)
-            raise ValueError("Invalid state")
-        elif solution_state == SolutionState.VERTICAL:
-            horizontal_chunk = new_board.get_chunk(position, Shape.HORIZONTAL)
-            if len(horizontal_chunk.word) > 1 and not self._dictionary.is_word(horizontal_chunk.word):
-                return (MoveStatus.INVALID, new_board)
-            vertical_chunk = new_board.get_chunk(position, Shape.VERTICAL)
-            is_word = self._dictionary.is_word(vertical_chunk.word)
-            is_substring = self._dictionary.is_substring(vertical_chunk.word)
-            if not is_word and not is_substring:
-                return (MoveStatus.INVALID, new_board)
-            if is_word and is_substring:
-                return (MoveStatus.PARTIAL_AND_COMPLETE_WORD, new_board)
-            if is_word:
-                return (MoveStatus.COMPLETE_WORD, new_board)
-            if is_substring:
-                return (MoveStatus.PARTIAL_WORD, new_board)
-            raise RuntimeError("Impossible state")
-        else:
-            raise ValueError(f"Unsupported solution state {solution_state}")
-
-    def get_chunk(self, position: Position, shape: Shape) -> WordPosition:
-        if self.is_tile_empty(position):
-            raise ValueError(f"Cannot get chunk from an empty tile at {position}")
-        if shape == Shape.HORIZONTAL:
-            min_col = position.col
-            max_col = position.col
-            while True:
-                new_position = Position(position.row, min_col - 1)
-                if not self._size.is_within_bounds(new_position) or self.is_tile_empty(new_position):
-                    break
-                min_col -= 1
-            while True:
-                new_position = Position(position.row, max_col + 1)
-                if not self._size.is_within_bounds(new_position) or self.is_tile_empty(new_position):
-                    break
-                max_col += 1
-            word = ''.join(self._state[position.row][min_col:max_col + 1])
-            return WordPosition(Position(position.row, min_col), word, shape)
-        elif shape == Shape.VERTICAL:
-            min_row = position.row
-            max_row = position.row
-            while True:
-                new_position = Position(min_row - 1, position.col)
-                if not self._size.is_within_bounds(new_position) or self.is_tile_empty(new_position):
-                    break
-                min_row -= 1
-            while True:
-                new_position = Position(max_row + 1, position.col)
-                if not self._size.is_within_bounds(new_position) or self.is_tile_empty(new_position):
-                    break
-                max_row += 1
-            word = ''.join(self.get_column(position.col)[min_row:max_row + 1])
-            return WordPosition(Position(min_row, position.col), word, shape)
-        else:
-            raise ValueError(f"Invalid shape: {shape}")
-
     def get_word_from_placement(self, placement: Placement, shape: Shape) -> tuple[str, Range]:
         """Assumes the given placement and returns the word formed with the given shape."""
         if shape == Shape.HORIZONTAL:
@@ -387,41 +241,7 @@ class Board:
                 output += "\n"
         return output
 
-    def get_placements_from_diff(self, other: Board) -> List[Placement]:
-        placements = []
-        for position in BoardIterator(self._size):
-            tile = self.get_tile(position)
-            other_tile = other.get_tile(position)
-            if tile != other_tile:
-                placements.append(Placement(position, Letter(tile)))
-        return placements
-
-    def get_score(self, turn: Turn, scoreboard: Scoreboard) -> int:
-        active_tiles = set([placement.position for placement in turn.placements])
-        if turn.len == 1:
-            score = 0
-            horizontal_word = self.get_chunk(turn.placements[0].position, Shape.HORIZONTAL)
-            if len(horizontal_word.word) > 1:
-                score += scoreboard.score_word(horizontal_word, active_tiles)
-            vertical_word = self.get_chunk(turn.placements[0].position, Shape.VERTICAL)
-            if len(vertical_word.word) > 1:
-                score += scoreboard.score_word(vertical_word, active_tiles)
-            if score == 0:
-                raise ValueError(f"Single turn solution does not form a word at least two letters long.")
-            return score
-        else:
-            is_horizontal = len(set(map(lambda x: x.position.row, turn.placements))) == 1
-            shape = Shape.HORIZONTAL if is_horizontal else Shape.VERTICAL
-            cross_shape = Shape.VERTICAL if is_horizontal else Shape.HORIZONTAL
-            word_position = self.get_chunk(turn.placements[0].position, shape)
-            score = scoreboard.score_word(word_position, active_tiles)
-            for placement in turn.placements:
-                word_position = self.get_chunk(placement.position, cross_shape)
-                if len(word_position.word) > 1:
-                    score += scoreboard.score_word(word_position, active_tiles)
-            return score
-
-    def get_score2(self, turn: Turn2, scoreboard: Scoreboard) -> int:
+    def get_score(self, turn: Turn2, scoreboard: Scoreboard) -> int:
         """Calculates the score based on applying the placements to the current board."""
 
         placements = turn.generate_placement_list()

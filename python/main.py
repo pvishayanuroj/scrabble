@@ -3,19 +3,15 @@ import argparse
 import datetime
 import os
 import re
-import time
 from board import Board
 from constants import GAME_FILE_PATTERN, MAX_SOLUTIONS_TO_SHOW, TEST_FILE_PATTERN
 from dictionary import Dictionary
 from enums import MenuSelection
 from player_tiles import PlayerTiles
 from scoreboard import Scoreboard
-from solution import Solution
-from turns import Turn, dedup_turns
-from turns2 import Turn as Turn2
 from typing import Optional
-from solver import solve, solve_first_turn
-from solver2 import solve as solve2
+from solution2 import Solution
+from solver2 import solve
 
 
 def main():
@@ -31,7 +27,6 @@ def main():
     args = parser.parse_args()
 
     selection = select_menu_option()
-    #selection = MenuSelection.LOAD_GAME
     if selection == MenuSelection.NEW_GAME:
         player_tiles = get_player_tiles()
         if player_tiles is None:
@@ -40,37 +35,12 @@ def main():
         dictionary = Dictionary(args.dictionary, args.omit)
         board = Board(scoreboard.size, dictionary)
 
-        new_solutions = solve2(board, scoreboard, dictionary, player_tiles)
-        for index, solution in enumerate(new_solutions[:MAX_SOLUTIONS_TO_SHOW]):
-            print(f"\n---------Solution {index + 1}-----------\n{solution}")
-
-        # print("OLD RUN")
-        # start_time = time.time()
-        # solution_boards = solve_first_turn(dictionary, board, scoreboard, player_tiles)
-        # solutions = []
-        # turns = []
-        # for solution in solution_boards:
-        #     turns.append(Turn(solution.get_placements_from_diff(board)))
-        # dedup_start_time = time.time()
-        # unique_turns = dedup_turns(turns)
-        # dedup_end_time = time.time()
-        # print(f"DEDUP to {len(unique_turns)} solutions in {(dedup_end_time - dedup_start_time):.2f} secs.")
-        # print(f"TOTAL: {(time.time() - start_time):.2f} secs")
-        # for turn in unique_turns:
-        #     solutions.append(Solution(board, turn, scoreboard))
-        # solutions.sort(reverse=True)
-        # for index, solution in enumerate(solutions[:MAX_SOLUTIONS_TO_SHOW]):
-        #     print(f"\n---------Solution {index + 1}-----------\n{solution}")
-
-        # compare_solutions(board, scoreboard, unique_turns, new_unique_turns)
-
-        # solutions.sort(reverse=True)
-        # truncated_solutions = solutions[:MAX_SOLUTIONS_TO_SHOW]
-        # selected_solution = select_solution(truncated_solutions)
-        # if not selected_solution:
-        #     return
-        # game_name = input("Enter a game name: ")
-        # selected_solution.save(generate_file_name(args.games, game_name))
+        solutions = solve(board, scoreboard, dictionary, player_tiles)
+        selected_solution = select_solution(solutions[:MAX_SOLUTIONS_TO_SHOW])
+        if not selected_solution:
+            return
+        game_name = input("Enter a game name: ")
+        selected_solution.save(generate_file_name(args.games, game_name))
     elif selection == MenuSelection.LOAD_GAME:
         game_names = get_games(args.games)
         if len(game_names) < 1:
@@ -91,35 +61,9 @@ def main():
         board = Board(scoreboard.size, dictionary)
         board.load_state(game_file)
 
-        new_solutions = solve2(board, scoreboard, dictionary, player_tiles)
+        new_solutions = solve(board, scoreboard, dictionary, player_tiles)
         for index, solution in enumerate(new_solutions[:MAX_SOLUTIONS_TO_SHOW]):
             print(f"\n---------Solution {index + 1}-----------\n{solution}")
-
-        print("OLD RUN")
-        start_time = time.time()
-        solution_boards = solve(dictionary, board, player_tiles)
-        solutions = []
-        turns = []
-        for solution in solution_boards:
-            turns.append(Turn(solution.get_placements_from_diff(board)))
-        dedup_start_time = time.time()
-        unique_turns = dedup_turns(turns)
-        dedup_end_time = time.time()
-        print(f"DEDUP to {len(unique_turns)} solutions in {(dedup_end_time - dedup_start_time):.2f} secs.")
-        print(f"TOTAL: {(time.time() - start_time):.2f} secs")
-        for turn in unique_turns:
-            solutions.append(Solution(board, turn, scoreboard))
-        solutions.sort(reverse=True)
-        for index, solution in enumerate(solutions[:MAX_SOLUTIONS_TO_SHOW]):
-            print(f"\n---------Solution {index + 1}-----------\n{solution}")
-
-        # compare_solutions(board, scoreboard, unique_turns, new_unique_turns)
-
-        # truncated_solutions = solutions[:MAX_SOLUTIONS_TO_SHOW]
-        # selected_solution = select_solution(truncated_solutions)
-        # if not selected_solution:
-        #     return
-        # selected_solution.save(generate_file_name(args.games, game_name))
     elif selection == MenuSelection.RUN_TEST:
         test_names = get_tests(args.tests)
         test_name = select_option('Test cases:', test_names)
@@ -133,29 +77,9 @@ def main():
         board.load_state(state_file)
         player_tiles = read_player_tiles_file(player_tiles_file)
 
-        solutions = solve2(board, scoreboard, dictionary, player_tiles)
+        solutions = solve(board, scoreboard, dictionary, player_tiles)
         for index, solution in enumerate(solutions[:MAX_SOLUTIONS_TO_SHOW]):
             print(f"\n---------Solution {index + 1}-----------\n{solution}")
-
-        # print("OLD RUN")
-        # start_time = time.time()
-        # solution_boards = solve(dictionary, board, player_tiles)
-        # solutions = []
-        # old_run_turns = []
-        # for solution in solution_boards:
-        #     old_run_turns.append(Turn(solution.get_placements_from_diff(board)))
-        # dedup_start_time = time.time()
-        # unique_turns = dedup_turns(old_run_turns)
-        # dedup_end_time = time.time()
-        # print(f"DEDUP to {len(unique_turns)} solutions in {(dedup_end_time - dedup_start_time):.2f} secs.")
-        # print(f"TOTAL: {(time.time() - start_time):.2f} secs")
-        # for turn in unique_turns:
-        #     solutions.append(Solution(board, turn, scoreboard))
-        # solutions.sort(reverse=True)
-        # for index, solution in enumerate(solutions[:MAX_SOLUTIONS_TO_SHOW]):
-        #     print(f"\n---------Solution {index + 1}-----------\n{solution}")
-
-        # compare_solutions(board, scoreboard, unique_turns, turns)
     elif selection == MenuSelection.REGEN_GOLDENS:
         test_names = get_tests(args.tests)
         test_name = select_option('Test cases:', test_names)
@@ -170,34 +94,10 @@ def main():
         board.load_state(state_file)
         player_tiles = read_player_tiles_file(player_tiles_file)
 
-        solutions = solve2(board, scoreboard, dictionary, player_tiles)
+        solutions = solve(board, scoreboard, dictionary, player_tiles)
         with open(golden_file, 'w') as file:
             file.writelines(map(lambda solution: solution.serialize() + '\n', solutions))
         print(f'Wrote {golden_file}')
-
-
-def compare_solutions(board: Board, scoreboard: Scoreboard, old_turns: list[Turn], new_turns: list[Turn2]):
-    converted_new_turns = list(map(lambda x: Turn(x.generate_placement_list()), new_turns))
-    missing_new_turns = []
-    for turn in converted_new_turns:
-        if turn not in old_turns:
-            missing_new_turns.append(turn)
-    print(f"{len(missing_new_turns)} turns in OLD not in NEW")
-    for turn in missing_new_turns:
-        s = Solution(board, turn, scoreboard)
-        print(s)
-        break
-
-    missing_old_turns = []
-    for turn in converted_new_turns:
-        if turn not in old_turns:
-            missing_old_turns.append(turn)
-    print(f"{len(missing_old_turns)} turns in NEW not in OLD")
-
-    for turn in missing_old_turns:
-        s = Solution(board, turn, scoreboard)
-        print(s)
-        break
 
 
 def generate_file_name(directory_path: str, game_name: str) -> str:
