@@ -2,7 +2,6 @@ import copy
 from typing import Dict
 
 from board import Board
-from constants import ALPHABET
 from dictionary import Dictionary
 from enums import Shape
 from iterators import ColIterator, NextLetterIterator, RowIterator, WildcardIterator
