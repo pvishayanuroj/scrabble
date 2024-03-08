@@ -23,10 +23,9 @@ class Board:
     def __init__(self, size: Size, dictionary: Dictionary, state: Optional[list[list[Optional[Letter]]]] = None):
         self._size = size
         self._dictionary = dictionary
+        self._state: list[list[Optional[Letter]]] = [[None] * self._size.num_cols for _ in range(self._size.num_rows)]
         if state:
             self._state = state
-        else:
-            self._state: list[list[Optional[Letter]]] = [[None] * self._size.num_cols for _ in range(self._size.num_rows)]
 
     def __str__(self):
         output = ''
@@ -243,7 +242,7 @@ class Board:
         output = ''
         for position in BoardIterator(self._size):
             letter = self.get_letter(position)
-            tile = '-' if letter == None else letter.serialize()
+            tile = '-' if letter is None else letter.serialize()
             other_letter = other.get_letter(position)
             other_tile = '-' if other_letter is None else other_letter.serialize()
             if tile != other_tile:
