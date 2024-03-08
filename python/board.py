@@ -10,8 +10,8 @@ from position import Position
 from range import Range
 from scoreboard import Scoreboard
 from size import Size
+from turns import Turn as Turn2
 from typing import Optional, Tuple, Union
-from turns2 import Turn as Turn2
 
 
 def get_chunks(value: list[Optional[Letter]]) -> list[str]:

@@ -1,8 +1,6 @@
 import time
 from functools import wraps
 
-from turns2 import Turn
-
 
 def timer(func):
     @wraps(func)

@@ -2,7 +2,7 @@ from __future__ import annotations
 from board import Board
 from constants import ENDC, RED
 from scoreboard import Scoreboard
-from turns2 import Turn
+from turns import Turn
 
 
 class Solution:

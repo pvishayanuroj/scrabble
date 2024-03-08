@@ -11,8 +11,8 @@ from placement import Placement
 from player_tiles import PlayerTiles
 from range import Range
 from scoreboard import Scoreboard
-from solution2 import Solution
-from turns2 import Turn
+from solution import Solution
+from turns import Turn
 from util import timer
 
 

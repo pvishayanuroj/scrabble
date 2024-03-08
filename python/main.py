@@ -9,9 +9,9 @@ from dictionary import Dictionary
 from enums import MenuSelection
 from player_tiles import PlayerTiles
 from scoreboard import Scoreboard
+from solution import Solution
+from solver import solve
 from typing import Optional
-from solution2 import Solution
-from solver2 import solve
 
 
 def main():
