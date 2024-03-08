@@ -1,6 +1,6 @@
 from __future__ import annotations
 import copy
-from constants import ENDC, MAX_LENGTH_WORD_SCORE, MAX_PLAYER_TILES, RED
+from constants import CYAN, ENDC, MAX_LENGTH_WORD_SCORE, MAX_PLAYER_TILES, RED
 from dictionary import Dictionary
 from enums import Direction, Shape
 from iterators import BoardIterator
@@ -10,29 +10,28 @@ from position import Position
 from range import Range
 from scoreboard import Scoreboard
 from size import Size
-from typing import List, Optional, Tuple, Union
+from typing import Optional, Tuple, Union
 from turns2 import Turn as Turn2
-from word_position import WordPosition
 
 
-def get_chunks(value: List[str]) -> List[str]:
-    chunks = ''.join(map(lambda x: '-' if x == '' else x, value)).split('-')
+def get_chunks(value: list[Optional[Letter]]) -> list[str]:
+    chunks = ''.join(map(lambda x: '-' if x is None else x.val, value)).split('-')
     return list(filter(lambda x: len(x) > 1, chunks))
 
 
 class Board:
-    def __init__(self, size: Size, dictionary: Dictionary, state: Optional[list[list[str]]] = None):
+    def __init__(self, size: Size, dictionary: Dictionary, state: Optional[list[list[Optional[Letter]]]] = None):
         self._size = size
         self._dictionary = dictionary
         if state:
             self._state = state
         else:
-            self._state = [[''] * self._size.num_cols for _ in range(self._size.num_rows)]
+            self._state: list[list[Optional[Letter]]] = [[None] * self._size.num_cols for _ in range(self._size.num_rows)]
 
     def __str__(self):
         output = ''
         for row in self._state:
-            output += ' '.join(map(lambda x: '-' if x == '' else x, row))
+            output += ' '.join(map(lambda x: '-' if x is None else x.serialize(), row))
             output += '\n'
         return output
 
@@ -46,7 +45,7 @@ class Board:
     def is_empty(self) -> bool:
         """Returns whether or not there are no letter tiles on the board."""
         for position in BoardIterator(self._size):
-            if self.get_tile(position) != '':
+            if self.get_tile(position) is not None:
                 return False
         return True
 
@@ -62,23 +61,28 @@ class Board:
             for line in file.readlines():
                 if line == '':
                     continue
-                row = []
-                for letter in line.strip().upper().split(' '):
+                row: list[Optional[Letter]] = []
+                for letter in line.strip().split(' '):
                     if letter == '-':
-                        row.append('')
+                        row.append(None)
                     elif letter.isupper():
-                        row.append(letter)
+                        row.append(Letter(letter))
+                    elif letter.islower():
+                        row.append(Letter(letter, True))
                     else:
-                        raise ValueError(f"Invalid input letter: {letter}")
+                        raise ValueError(f'Invalid input letter: {letter}')
                 if len(row) != self._size.num_cols:
-                    raise ValueError(f"Expected {self._size.num_cols} columns, got {len(row)}")
+                    raise ValueError(f'Expected {self._size.num_cols} columns, got {len(row)}')
                 self._state.append(row)
             if len(self._state) != self._size.num_rows:
-                raise ValueError(f"Expected {self._size.num_rows} rows, got {len(self._state)}")
-        print(f"Successfully loaded {filepath}")
+                raise ValueError(f'Expected {self._size.num_rows} rows, got {len(self._state)}')
+        print(f'Successfully loaded {filepath}')
 
     def get_tile(self, position: Position) -> str:
-        return self._state[position.row][position.col]
+        tile = self._state[position.row][position.col]
+        if tile is None:
+            return ''
+        return tile.val
 
     def get_tile_checked(self, position: Position) -> Union[None, str]:
         """Checks if the tile is within bounds, returning None if not. Otherwise returns the tile."""
@@ -86,10 +90,19 @@ class Board:
             return self.get_tile(position)
         return None
 
+    def get_letter(self, position: Position) -> Optional[Letter]:
+        return self._state[position.row][position.col]
+
+    def get_letter_checked(self, position: Position) -> Optional[Letter]:
+        """Checks if the tile is within bounds or is populated, returning None if not. Otherwise returns the Letter."""
+        if self._size.is_within_bounds(position):
+            return self.get_letter(position)
+        return None
+
     def set_tile(self, placement: Placement):
         if self.is_tile_filled(placement.position):
             raise ValueError(f"Cannot set non-empty tile: {placement.position}.")
-        self._state[placement.position.row][placement.position.col] = placement.letter.val
+        self._state[placement.position.row][placement.position.col] = placement.letter
 
     def get_adjacent_tile(self, position: Position, direction: Direction) -> Union[None, str]:
         """Returns the value of the adjacent tile or None if the tile is out of bounds."""
@@ -155,7 +168,7 @@ class Board:
     def is_any_adjacent_tile_filled(self, position: Position) -> bool:
         return not self.are_adjacent_tiles_empty(position)
 
-    def is_state_valid(self) -> tuple[bool, List[str]]:
+    def is_state_valid(self) -> tuple[bool, list[str]]:
         # Check that all tiles are next to at least one other tile.
         for position in BoardIterator(self._size):
             if self.is_tile_filled(position) and self.are_adjacent_tiles_empty(position):
@@ -173,7 +186,7 @@ class Board:
             return (False, invalid_words)
         return (True, [])
 
-    def get_first_tile_positions(self) -> List[Position]:
+    def get_first_tile_positions(self) -> list[Position]:
         """The possible tiles that a letter can be placed to start the turn.
 
         This assumes a non-empty board.
@@ -211,9 +224,9 @@ class Board:
                 else:
                     word += tile
             return (word, Range(start, end))
-        raise RuntimeError(f"Invalid shape: {shape}")
+        raise RuntimeError(f'Invalid shape: {shape}')
 
-    def get_column(self, index) -> List[str]:
+    def get_column(self, index) -> list[Optional[Letter]]:
         col = []
         for row in self._state:
             col.append(row[index])
@@ -222,23 +235,25 @@ class Board:
     def save(self, filepath: str):
         with open(filepath, 'w') as file:
             file.write(str(self))
-        print(f"Wrote {filepath}")
+        print(f'Wrote {filepath}')
 
     def get_diff(self, other: Board) -> str:
         if self._size != other.size:
-            raise ValueError(f"Cannot print diff of different sized boards.")
+            raise ValueError(f'Cannot print diff of different sized boards.')
         output = ''
         for position in BoardIterator(self._size):
-            tile = self.get_tile(position)
-            tile = '-' if tile == '' else tile
-            other_tile = other.get_tile(position)
-            other_tile = '-' if other_tile == '' else other_tile
+            letter = self.get_letter(position)
+            tile = '-' if letter == None else letter.serialize()
+            other_letter = other.get_letter(position)
+            other_tile = '-' if other_letter is None else other_letter.serialize()
             if tile != other_tile:
-                output += f"{RED}{tile}{ENDC} "
+                output += f'{RED}{tile}{ENDC} '
+            elif tile.islower():
+                output += f'{CYAN}{tile} {ENDC}'
             else:
-                output += f"{tile} "
+                output += f'{tile} '
             if position.col == (self._size.num_cols - 1):
-                output += "\n"
+                output += '\n'
         return output
 
     def get_score(self, turn: Turn2, scoreboard: Scoreboard) -> int:
@@ -249,13 +264,14 @@ class Board:
         # Get the word by selecting the first placement and expanding
         # in both directions.
         curr_position = placements[0].position
+        # The bool indicates whether or not it is an active tile.
         start_letters: list[Tuple[Letter, Position, bool]] = []
         while True:
             next_position = curr_position.move(turn.shape.start_direction)
-            non_active_tile = self.get_tile_checked(next_position)
+            non_active_tile = self.get_letter_checked(next_position)
             active_tile = turn.get_tile_checked(next_position)
-            if non_active_tile is not None and non_active_tile != '':
-                foo = (Letter(non_active_tile), next_position, False)
+            if non_active_tile is not None:
+                foo = (non_active_tile, next_position, False)
                 start_letters.append(foo)
             elif active_tile is not None:
                 foo = (active_tile, next_position, True)
@@ -269,10 +285,10 @@ class Board:
         end_letters: list[Tuple[Letter, Position, bool]] = []
         while True:
             next_position = curr_position.move(turn.shape.end_direction)
-            non_active_tile = self.get_tile_checked(next_position)
+            non_active_tile = self.get_letter_checked(next_position)
             active_tile = turn.get_tile_checked(next_position)
-            if non_active_tile is not None and non_active_tile != '':
-                foo = (Letter(non_active_tile), next_position, False)
+            if non_active_tile is not None:
+                foo = (non_active_tile, next_position, False)
                 end_letters.append(foo)
             elif active_tile is not None:
                 foo = (active_tile, next_position, True)
@@ -292,9 +308,9 @@ class Board:
             start_letters_cross: list[Tuple[Letter, Position, bool]] = []
             while True:
                 next_position = curr_position.move(cross_shape.start_direction)
-                non_active_tile = self.get_tile_checked(next_position)
-                if non_active_tile is not None and non_active_tile != '':
-                    foo = (Letter(non_active_tile), next_position, False)
+                non_active_tile = self.get_letter_checked(next_position)
+                if non_active_tile is not None:
+                    foo = (non_active_tile, next_position, False)
                     start_letters_cross.append(foo)
                 else:
                     break
@@ -305,9 +321,9 @@ class Board:
             end_letters_cross: list[Tuple[Letter, Position, bool]] = []
             while True:
                 next_position = curr_position.move(cross_shape.end_direction)
-                non_active_tile = self.get_tile_checked(next_position)
-                if non_active_tile is not None and non_active_tile != '':
-                    foo = (Letter(non_active_tile), next_position, False)
+                non_active_tile = self.get_letter_checked(next_position)
+                if non_active_tile is not None:
+                    foo = (non_active_tile, next_position, False)
                     end_letters_cross.append(foo)
                 else:
                     break
