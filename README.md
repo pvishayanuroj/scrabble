@@ -1,13 +1,5 @@
 # scrabble
 
-
-## Testcases
-
-New game: 'RSTEOAM'
-test3.txt: 'GETHUTO'
-test4.txt: 'NRALEFI'
-test5.txt: 'O*FLTEU'
-
 ## Performance
 
 #### Initial timings w/ basic substring check:
