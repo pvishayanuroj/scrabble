@@ -30,17 +30,9 @@ class Position:
     def __repr__(self):
         return f"[{self.row}, {self.col}]"
 
-    @property
-    def row(self) -> int:
-        return self._row
-
-    @property
-    def col(self) -> int:
-        return self._col
-
-    @property
-    def index(self) -> int:
-        return self.row * MAX_BOARD_SIZE + self.col
+    @classmethod
+    def from_index(cls, index: int) -> Position:
+        return cls(index // MAX_BOARD_SIZE, index % MAX_BOARD_SIZE)
 
     def move(self, direction: Direction, steps: int = 1) -> Position:
         """Moves N steps in the given direction."""
@@ -53,3 +45,15 @@ class Position:
         if direction == Direction.RIGHT:
             return Position(self.row, self.col + steps)
         raise ValueError(f"Invalid direction: {direction}")
+
+    @property
+    def row(self) -> int:
+        return self._row
+
+    @property
+    def col(self) -> int:
+        return self._col
+
+    @property
+    def index(self) -> int:
+        return self.row * MAX_BOARD_SIZE + self.col

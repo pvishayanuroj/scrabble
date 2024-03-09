@@ -4,9 +4,17 @@ import datetime
 import os
 import re
 from board import Board
-from constants import GAME_FILE_PATTERN, MAX_SOLUTIONS_TO_SHOW, TEST_FILE_PATTERN
+from constants import (
+    ENDC,
+    GAME_FILE_PATTERN,
+    GREEN,
+    MAX_SOLUTIONS_TO_SHOW,
+    RED,
+    TEST_FILE_PATTERN,
+)
 from dictionary import Dictionary
 from enums import MenuSelection
+from placements import Placements
 from player_tiles import PlayerTiles
 from scoreboard import Scoreboard
 from solution import Solution
@@ -17,12 +25,32 @@ from typing import Optional
 def main():
     parser = argparse.ArgumentParser(description="A command line word puzzle solver.")
 
-    parser.add_argument("--dictionary", default="dictionaries/279k-dictionary.txt", help="Dictionary file path (default: %(default)s)")
-    parser.add_argument("--omit", default="dictionaries/omit.txt", help="List of words to omit from dictionary (default: %(default)s)")
-    parser.add_argument("--board", default="boards/official.txt", help="Board file path (default: %(default)s)")
-    parser.add_argument("--points", default="points.txt", help="Points file path (default: %(default)s)")
-    parser.add_argument("--games", default="games/", help="Games directory path (default: %(default)s)")
-    parser.add_argument("--tests", default="testcases/", help="Test case directory path (default: %(default)s)")
+    parser.add_argument(
+        "--dictionary",
+        default="dictionaries/279k-dictionary.txt",
+        help="Dictionary file path (default: %(default)s)",
+    )
+    parser.add_argument(
+        "--omit",
+        default="dictionaries/omit.txt",
+        help="List of words to omit from dictionary (default: %(default)s)",
+    )
+    parser.add_argument(
+        "--board",
+        default="boards/official.txt",
+        help="Board file path (default: %(default)s)",
+    )
+    parser.add_argument(
+        "--points", default="points.txt", help="Points file path (default: %(default)s)"
+    )
+    parser.add_argument(
+        "--games", default="games/", help="Games directory path (default: %(default)s)"
+    )
+    parser.add_argument(
+        "--tests",
+        default="testcases/",
+        help="Test case directory path (default: %(default)s)",
+    )
 
     args = parser.parse_args()
 
@@ -44,12 +72,12 @@ def main():
     elif selection == MenuSelection.LOAD_GAME:
         game_names = get_games(args.games)
         if len(game_names) < 1:
-            print('No saved games found. Exiting.')
+            print("No saved games found. Exiting.")
             return
         if len(game_names) == 1:
             game_name = game_names[0]
         else:
-            game_name = select_option('Available games:', game_names)
+            game_name = select_option("Available games:", game_names)
         if game_name is None:
             return
         game_file = get_latest_game_file(args.games, game_name)
@@ -66,11 +94,12 @@ def main():
             print(f"\n---------Solution {index + 1}-----------\n{solution}")
     elif selection == MenuSelection.RUN_TEST:
         test_names = get_tests(args.tests)
-        test_name = select_option('Test cases:', test_names)
+        test_name = select_option("Test cases:", test_names)
         if test_name is None:
             return
-        state_file = os.path.join(args.tests, f'{test_name}_state.txt')
-        player_tiles_file = os.path.join(args.tests, f'{test_name}_tiles.txt')
+        state_file = os.path.join(args.tests, f"{test_name}_state.txt")
+        player_tiles_file = os.path.join(args.tests, f"{test_name}_tiles.txt")
+        golden_file = os.path.join(args.tests, f"{test_name}_golden.txt")
         scoreboard = Scoreboard(args.board, args.points)
         dictionary = Dictionary(args.dictionary)
         board = Board(scoreboard.size, dictionary)
@@ -78,16 +107,28 @@ def main():
         player_tiles = read_player_tiles_file(player_tiles_file)
 
         solutions = solve(board, scoreboard, dictionary, player_tiles)
-        for index, solution in enumerate(solutions[:MAX_SOLUTIONS_TO_SHOW]):
-            print(f"\n---------Solution {index + 1}-----------\n{solution}")
+        # for index, solution in enumerate(solutions[:MAX_SOLUTIONS_TO_SHOW]):
+        #     print(f"\n---------Solution {index + 1}-----------\n{solution}")
+
+        actual = list(
+            map(
+                lambda solution: (
+                    solution.score,
+                    Placements(solution.turn.generate_placement_list()),
+                ),
+                solutions,
+            )
+        )
+        compare_solutions(actual, load_golden(golden_file))
+
     elif selection == MenuSelection.REGEN_GOLDENS:
         test_names = get_tests(args.tests)
-        test_name = select_option('Test cases:', test_names)
+        test_name = select_option("Test cases:", test_names)
         if test_name is None:
             return
-        state_file = os.path.join(args.tests, f'{test_name}_state.txt')
-        player_tiles_file = os.path.join(args.tests, f'{test_name}_tiles.txt')
-        golden_file = os.path.join(args.tests, f'{test_name}_golden.txt')
+        state_file = os.path.join(args.tests, f"{test_name}_state.txt")
+        player_tiles_file = os.path.join(args.tests, f"{test_name}_tiles.txt")
+        golden_file = os.path.join(args.tests, f"{test_name}_golden.txt")
         scoreboard = Scoreboard(args.board, args.points)
         dictionary = Dictionary(args.dictionary)
         board = Board(scoreboard.size, dictionary)
@@ -95,9 +136,32 @@ def main():
         player_tiles = read_player_tiles_file(player_tiles_file)
 
         solutions = solve(board, scoreboard, dictionary, player_tiles)
-        with open(golden_file, 'w') as file:
-            file.writelines(map(lambda solution: solution.serialize() + '\n', solutions))
-        print(f'Wrote {golden_file}')
+        with open(golden_file, "w") as file:
+            file.writelines(
+                map(lambda solution: solution.serialize() + "\n", solutions)
+            )
+        print(f"Wrote {golden_file}")
+
+
+def compare_solutions(
+    actual: list[tuple[int, Placements]], expected: list[tuple[int, Placements]]
+):
+    actual_placements = set(map(lambda x: x[1], actual))
+    expected_placements = set(map(lambda x: x[1], expected))
+    extra_placements = actual_placements - expected_placements
+    missing_placements = expected_placements - actual_placements
+
+    if len(extra_placements) == 0 and len(missing_placements) == 0:
+        print(f"{GREEN}PASS{ENDC}: {len(actual)} turns in TEST match GOLDEN.")
+    else:
+        if len(extra_placements) > 0:
+            print(
+                f"{RED}FAIL{ENDC}: {len(extra_placements)} extra turns in TEST."
+            )
+        if len(missing_placements) > 0:
+            print(
+                f"{RED}FAIL{ENDC}: {len(missing_placements)} missing turns in TEST."
+            )
 
 
 def generate_file_name(directory_path: str, game_name: str) -> str:
@@ -162,7 +226,7 @@ def get_player_tiles() -> Optional[PlayerTiles]:
             print("Exiting.")
             return None
         except ValueError as e:
-            print('Invalid input')
+            print("Invalid input")
     print(player_tiles)
     return player_tiles
 
@@ -177,7 +241,7 @@ def get_tests(directory_path: str) -> list[str]:
 
 
 def read_player_tiles_file(filepath: str) -> PlayerTiles:
-    with open(filepath, 'r') as file:
+    with open(filepath, "r") as file:
         return PlayerTiles(file.readline())
 
 
@@ -195,6 +259,23 @@ def select_solution(solutions: list[Solution]) -> Optional[Solution]:
             return None
         except:
             print("Invalid input. Select a valid option.")
+
+
+def load_golden(filepath: str) -> list[tuple[int, Placements]]:
+    output: list[tuple[int, Placements]] = []
+    with open(filepath, "r") as file:
+        for line in file.readlines():
+            if line != "":
+                elements = line.strip().split("||")
+                if len(elements) != 2:
+                    raise ValueError(f"Improperly formatted line: {line}")
+                score = int(elements[0])
+                placement_strings = elements[1].split("|")
+                placements = Placements.from_strings(placement_strings)
+                output.append(
+                    (score, placements),
+                )
+    return output
 
 
 if __name__ == "__main__":

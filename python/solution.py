@@ -15,6 +15,10 @@ class Solution:
     def score(self) -> int:
         return self._score
 
+    @property
+    def turn(self) -> Turn:
+        return self._turn
+
     def __lt__(self, other: Solution):
         return self.score < other.score
 
