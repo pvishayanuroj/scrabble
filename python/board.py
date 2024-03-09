@@ -44,7 +44,7 @@ class Board:
     def is_empty(self) -> bool:
         """Returns whether or not there are no letter tiles on the board."""
         for position in BoardIterator(self._size):
-            if self.get_tile(position) is not None:
+            if self.get_tile(position) != '':
                 return False
         return True
 
