@@ -113,8 +113,8 @@ def main():
         actual = list(
             map(
                 lambda solution: (
-                    solution.score,
                     Placements(solution.turn.generate_placement_list()),
+                    solution.score,
                 ),
                 solutions,
             )
@@ -144,24 +144,31 @@ def main():
 
 
 def compare_solutions(
-    actual: list[tuple[int, Placements]], expected: list[tuple[int, Placements]]
+    actual: list[tuple[Placements, int]], expected: list[tuple[Placements, int]]
 ):
-    actual_placements = set(map(lambda x: x[1], actual))
-    expected_placements = set(map(lambda x: x[1], expected))
+    actual_placements = set(map(lambda x: x[0], actual))
+    expected_placements = set(map(lambda x: x[0], expected))
     extra_placements = actual_placements - expected_placements
     missing_placements = expected_placements - actual_placements
 
     if len(extra_placements) == 0 and len(missing_placements) == 0:
-        print(f"{GREEN}PASS{ENDC}: {len(actual)} turns in TEST match GOLDEN.")
+        actual_scores = dict(actual)
+        incorrect_scores = []
+        for placements, expected_score in expected:
+            actual_score = actual_scores[placements]
+            if actual_score != expected_score:
+                incorrect_scores.append(
+                    (placements, actual_score, expected_score),
+                )
+        if len(incorrect_scores) == 0:
+            print(f"{GREEN}PASS{ENDC}: {len(actual)} turns in TEST match GOLDEN.")
+        else:
+            print(f"{RED}FAIL{ENDC}: {len(incorrect_scores)} incorrect scores in TEST.")
     else:
         if len(extra_placements) > 0:
-            print(
-                f"{RED}FAIL{ENDC}: {len(extra_placements)} extra turns in TEST."
-            )
+            print(f"{RED}FAIL{ENDC}: {len(extra_placements)} extra turns in TEST.")
         if len(missing_placements) > 0:
-            print(
-                f"{RED}FAIL{ENDC}: {len(missing_placements)} missing turns in TEST."
-            )
+            print(f"{RED}FAIL{ENDC}: {len(missing_placements)} missing turns in TEST.")
 
 
 def generate_file_name(directory_path: str, game_name: str) -> str:
@@ -258,7 +265,7 @@ def load_golden(filepath: str) -> list[tuple[int, Placements]]:
                 placement_strings = elements[1].split("|")
                 placements = Placements.from_strings(placement_strings)
                 output.append(
-                    (score, placements),
+                    (placements, score),
                 )
     return output
 
