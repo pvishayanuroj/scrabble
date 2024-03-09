@@ -246,7 +246,7 @@ class Board:
             if tile != other_tile:
                 output += f'{RED}{tile}{ENDC} '
             elif tile.islower():
-                output += f'{CYAN}{tile} {ENDC}'
+                output += f'{CYAN}{tile.upper()}{ENDC} '
             else:
                 output += f'{tile} '
             if position.col == (self._size.num_cols - 1):
