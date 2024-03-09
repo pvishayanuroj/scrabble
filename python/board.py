@@ -1,6 +1,6 @@
 from __future__ import annotations
 import copy
-from constants import CYAN, ENDC, MAX_LENGTH_WORD_SCORE, MAX_PLAYER_TILES, RED
+from constants import CYAN, ENDC, RED
 from dictionary import Dictionary
 from enums import Direction, Shape
 from iterators import BoardIterator
