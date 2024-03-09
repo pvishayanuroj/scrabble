@@ -56,7 +56,7 @@ def main():
 
     selection = select_menu_option()
     if selection == MenuSelection.NEW_GAME:
-        player_tiles = get_player_tiles()
+        player_tiles = PlayerTiles.from_input()
         if player_tiles is None:
             return
         scoreboard = Scoreboard(args.board, args.points)
@@ -81,7 +81,7 @@ def main():
         if game_name is None:
             return
         game_file = get_latest_game_file(args.games, game_name)
-        player_tiles = get_player_tiles()
+        player_tiles = PlayerTiles.from_input()
         if player_tiles is None:
             return
         scoreboard = Scoreboard(args.board, args.points)
@@ -214,21 +214,6 @@ def get_latest_game_file(directory_path: str, game_name: str) -> str:
         if match and match.groups()[0] == game_name:
             files.append(os.path.join(directory_path, filename))
     return sorted(files, reverse=True)[0]
-
-
-def get_player_tiles() -> Optional[PlayerTiles]:
-    while True:
-        user_input = input("\nEnter tiles ('*' for wildcard): ")
-        try:
-            player_tiles = PlayerTiles(user_input)
-            break
-        except KeyboardInterrupt:
-            print("Exiting.")
-            return None
-        except ValueError as e:
-            print("Invalid input")
-    print(player_tiles)
-    return player_tiles
 
 
 def get_tests(directory_path: str) -> list[str]:

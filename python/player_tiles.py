@@ -1,4 +1,6 @@
+from __future__ import annotations
 import re
+from typing import Optional
 
 from constants import PLAYER_TILES_PATTERN
 from letter import Letter
@@ -37,3 +39,18 @@ class PlayerTiles:
     @property
     def num_wildcards(self) -> int:
         return self._num_wildcards
+
+    @classmethod
+    def from_input(cls) -> Optional[PlayerTiles]:
+        while True:
+            user_input = input("\nEnter tiles ('*' for wildcard): ")
+            try:
+                player_tiles = cls(user_input)
+                break
+            except KeyboardInterrupt:
+                print("Exiting.")
+                return None
+            except ValueError as e:
+                print("Invalid input")
+        print(player_tiles)
+        return player_tiles
