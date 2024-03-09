@@ -2,6 +2,7 @@ from __future__ import annotations
 from board import Board
 from constants import ENDC, RED
 from scoreboard import Scoreboard
+from scorer import calculate_score
 from turns import Turn
 
 
@@ -9,7 +10,7 @@ class Solution:
     def __init__(self, original_board: Board, scoreboard: Scoreboard, turn: Turn):
         self._original_board = original_board
         self._turn = turn
-        self._score = original_board.get_score(turn, scoreboard)
+        self._score = calculate_score(original_board, scoreboard, turn)
 
     @property
     def score(self) -> int:
