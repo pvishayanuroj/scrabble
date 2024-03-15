@@ -3,7 +3,7 @@ CYAN = '\033[96m'
 GREEN = '\033[92m'
 ENDC = '\033[0m'
 
-GAME_FILE_PATTERN = r'^(\w+)_\d{8}_\d{6}\.txt$'
+GAME_FILE_PATTERN = r'^(\w+).txt$'
 TEST_FILE_PATTERN = r'^(\w+)_state.txt$'
 
 ALPHABET = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'

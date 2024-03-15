@@ -1,6 +1,5 @@
 from __future__ import annotations
 import argparse
-import datetime
 import os
 import re
 from board import Board
@@ -80,7 +79,7 @@ def main():
             game_name = select_option("Available games:", game_names)
         if game_name is None:
             return
-        game_file = get_latest_game_file(args.games, game_name)
+        game_file = os.path.join(args.games, f"{game_name}.txt")
         player_tiles = PlayerTiles.from_input()
         if player_tiles is None:
             return
@@ -89,9 +88,10 @@ def main():
         board = Board(scoreboard.size, dictionary)
         board.load_state(game_file)
 
-        new_solutions = solve(board, scoreboard, dictionary, player_tiles)
-        for index, solution in enumerate(new_solutions[:MAX_SOLUTIONS_TO_SHOW]):
-            print(f"\n---------Solution {index + 1}-----------\n{solution}")
+        solutions = solve(board, scoreboard, dictionary, player_tiles)
+        selected_solution = select_solution(solutions)
+        if selected_solution:
+            selected_solution.save(game_file)
     elif selection == MenuSelection.RUN_TEST:
         test_names = get_tests(args.tests)
         test_name = select_option("Test cases:", test_names)
@@ -107,8 +107,6 @@ def main():
         player_tiles = read_player_tiles_file(player_tiles_file)
 
         solutions = solve(board, scoreboard, dictionary, player_tiles)
-        # for index, solution in enumerate(solutions[:MAX_SOLUTIONS_TO_SHOW]):
-        #     print(f"\n---------Solution {index + 1}-----------\n{solution}")
 
         actual = list(
             map(
@@ -172,8 +170,7 @@ def compare_solutions(
 
 
 def generate_file_name(directory_path: str, game_name: str) -> str:
-    timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
-    filename = f"{game_name}_{timestamp}.txt"
+    filename = f"{game_name}.txt"
     return os.path.join(directory_path, filename)
 
 
@@ -214,15 +211,6 @@ def select_option(prompt: str, values: list[str]) -> Optional[str]:
             print("Invalid input. Select a valid option.")
 
 
-def get_latest_game_file(directory_path: str, game_name: str) -> str:
-    files = []
-    for filename in os.listdir(directory_path):
-        match = re.match(GAME_FILE_PATTERN, filename)
-        if match and match.groups()[0] == game_name:
-            files.append(os.path.join(directory_path, filename))
-    return sorted(files, reverse=True)[0]
-
-
 def get_tests(directory_path: str) -> list[str]:
     tests: set[str] = set()
     for filename in os.listdir(directory_path):
@@ -239,7 +227,7 @@ def read_player_tiles_file(filepath: str) -> PlayerTiles:
 
 def select_solution(solutions: list[Solution]) -> Optional[Solution]:
     print(f"Generated {len(solutions)} solutions")
-    for index, solution in enumerate(solutions):
+    for index, solution in enumerate(solutions[:MAX_SOLUTIONS_TO_SHOW]):
         print(f"\n---------Solution {index + 1}-----------\n{solution}")
     while True:
         try:
