@@ -1,3 +1,4 @@
+use std::collections::HashSet;
 use std::fs::File;
 use std::io::{self, BufRead};
 use std::path::Path;
@@ -23,4 +24,15 @@ pub fn char_from_string(val: &str) -> Option<char> {
         }
     }
     None
+}
+
+pub fn get_all_substrings(val: &str) -> HashSet<String> {
+    let mut substrings: HashSet<String> = HashSet::new();
+    for substring_len in 1..=val.len() {
+        for start_index in 0..=(val.len() - substring_len) {
+            let substring = &val[start_index..(start_index + substring_len)];
+            substrings.insert(substring.to_string());
+        }
+    }
+    substrings
 }
