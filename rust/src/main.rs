@@ -1,10 +1,23 @@
+use crate::dictionary::Dictionary;
 use board::Board;
 
 pub mod board;
+pub mod dictionary;
+pub mod dictionary_entry;
+pub mod enums;
+pub mod iterative_solver;
 pub mod letter;
+pub mod placement;
+pub mod position;
+pub mod scoreboard;
+pub mod turn;
 pub mod util;
 
 fn main() {
+    let dictionary = Dictionary::from_file(
+        "../dictionaries/279k-dictionary.txt",
+        Some("../dictionaries/omit.txt"),
+    );
     let board = Board::from_file("../testcases/test3_state.txt").unwrap();
     println!("{}", board);
 }
