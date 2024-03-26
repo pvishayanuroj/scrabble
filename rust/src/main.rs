@@ -6,6 +6,7 @@ pub mod dictionary;
 pub mod dictionary_entry;
 pub mod enums;
 pub mod iterative_solver;
+pub mod iterators;
 pub mod letter;
 pub mod placement;
 pub mod position;
