@@ -1,12 +1,13 @@
 use crate::{
-    board::Board, dictionary::Dictionary, letter::Letter, scoreboard::Scoreboard, turn::Turn,
+    board::Board, dictionary::Dictionary, iterators::UniqueFirstAndRestIterator, letter::Letter,
+    scoreboard::Scoreboard, turn::Turn,
 };
 
 pub fn solve(
     board: &Board,
     scoreboard: &Scoreboard,
     dictionary: &Dictionary,
-    letters: Vec<Letter>,
+    letters: &Vec<Letter>,
 ) {
     // Run iterative DFS.
     let mut stack: Vec<Turn> = initial_eval(board, scoreboard, dictionary, letters);
@@ -19,9 +20,10 @@ fn initial_eval(
     board: &Board,
     scoreboard: &Scoreboard,
     dictionary: &Dictionary,
-    letters: Vec<Letter>,
+    letters: &Vec<Letter>,
 ) -> Vec<Turn> {
     let turns = vec![];
+    for (letter, remaining_letters) in UniqueFirstAndRestIterator::new(letters) {}
     turns
 }
 
