@@ -1,6 +1,6 @@
 use crate::{
-    board::Board, dictionary::Dictionary, iterators::UniqueFirstAndRestIterator, letter::Letter,
-    scoreboard::Scoreboard, turn::Turn,
+    board::Board, dictionary::Dictionary, letter::Letter, scoreboard::Scoreboard, turn::Turn,
+    unique_and_first_iterator::UniqueFirstAndRestIterator,
 };
 
 pub fn solve(
