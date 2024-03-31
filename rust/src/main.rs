@@ -5,6 +5,7 @@ pub mod board;
 pub mod board_iterator;
 pub mod dictionary;
 pub mod dictionary_entry;
+pub mod direction_iterator;
 pub mod enums;
 pub mod iterative_solver;
 pub mod letter;

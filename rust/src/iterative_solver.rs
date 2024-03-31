@@ -22,8 +22,12 @@ fn initial_eval(
     dictionary: &Dictionary,
     letters: &Vec<Letter>,
 ) -> Vec<Turn> {
+    let next_positions = board.get_first_tile_positions();
+
     let turns = vec![];
-    for (letter, remaining_letters) in UniqueFirstAndRestIterator::new(letters) {}
+    for (letter, remaining_letters) in UniqueFirstAndRestIterator::new(letters) {
+        for position in next_positions {}
+    }
     turns
 }
 

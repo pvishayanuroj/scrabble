@@ -1,8 +1,8 @@
 use crate::{position::Position, size::Size};
 
 pub struct BoardIterator {
-    curr_row: u8,
-    curr_col: u8,
+    curr_row: usize,
+    curr_col: usize,
     size: Size,
 }
 
