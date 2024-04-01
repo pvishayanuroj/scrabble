@@ -1,6 +1,6 @@
 use std::fmt;
 
-#[derive(Hash)]
+#[derive(Hash, Eq, PartialEq)]
 pub struct Letter {
     pub val: char,
     pub is_wildcard: bool,

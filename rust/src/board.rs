@@ -1,9 +1,13 @@
+use crate::board_iterator::BoardIterator;
+use crate::position::Position;
+use crate::size::Size;
 use crate::util::char_from_string;
 use crate::{letter::Letter, util::read_lines};
 use std::fmt;
 use std::io;
 
 pub struct Board {
+    size: Size,
     state: Vec<Vec<Option<Letter>>>,
 }
 
@@ -16,6 +20,7 @@ pub enum BoardLoadError {
 impl Board {
     pub fn from_file(filepath: &str) -> Result<Board, BoardLoadError> {
         let mut state = vec![];
+        let mut num_cols = 0;
         for line in read_lines(filepath).map_err(BoardLoadError::IoError)? {
             let line = line.map_err(BoardLoadError::IoError)?;
             if line == "" {
@@ -44,9 +49,38 @@ impl Board {
                     }
                 }
             }
+            if num_cols == 0 {
+                num_cols = row.len();
+            } else if num_cols != row.len() {
+                return Err(BoardLoadError::ParseError(format!(
+                    "Invalid number of columns"
+                )));
+            }
             state.push(row);
         }
-        Ok(Board { state })
+        let size = Size::new(state.len(), num_cols);
+        Ok(Board { size, state })
+    }
+
+    pub fn get_letter(&self, position: &Position) -> Option<Letter> {
+        self.state[position.row][position.col]
+    }
+
+    pub fn is_any_adjacent_position_filled(&self, position: &Position) -> bool {}
+
+    /// A position is a valid first tile position if it is empty but is adjacent to any non-empty
+    /// tile.
+    fn is_valid_first_tile_position(&self, position: &Position) -> bool {
+        if !self.get_letter(position).is_none() {
+            return false;
+        }
+    }
+
+    pub fn get_first_tile_positions(&self) -> Vec<Position> {
+        BoardIterator::new(self.size)
+            .into_iter()
+            .filter(|x| self.is_valid_first_tile_position(x))
+            .collect()
     }
 }
 

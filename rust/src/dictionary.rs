@@ -31,6 +31,7 @@ impl Dictionary {
             }
             substrings.extend(get_all_substrings(&line));
             words.insert(line);
+            // TODO: Uncomment for dictionary validation.
             // if pattern.is_match(&line) {
             //     substrings.extend(get_all_substrings(&line));
             //     words.insert(line);
