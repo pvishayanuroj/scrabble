@@ -74,15 +74,18 @@ class Shape(Enum):
 class MenuSelection(IntEnum):
     NEW_GAME = 1,
     LOAD_GAME = 2,
-    RUN_TEST = 3,
-    REGEN_GOLDENS = 4,
-    QUIT = 5,
+    UPDATE_OMIT = 3,
+    RUN_TEST = 4,
+    REGEN_GOLDENS = 5,
+    QUIT = 6,
 
     def __str__(self):
         if self == MenuSelection.NEW_GAME:
             return 'New game'
         if self == MenuSelection.LOAD_GAME:
             return 'Load game'
+        if self == MenuSelection.UPDATE_OMIT:
+            return 'Add omitted word(s)'
         if self == MenuSelection.RUN_TEST:
             return 'Run test'
         if self == MenuSelection.REGEN_GOLDENS:

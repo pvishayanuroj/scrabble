@@ -10,6 +10,7 @@ from constants import (
     MAX_SOLUTIONS_TO_SHOW,
     RED,
     TEST_FILE_PATTERN,
+    WORD_PATTERN,
 )
 from dictionary import Dictionary
 from enums import MenuSelection
@@ -139,6 +140,15 @@ def main():
                 map(lambda solution: solution.serialize() + "\n", solutions)
             )
         print(f"Wrote {golden_file}")
+    elif selection == MenuSelection.UPDATE_OMIT:
+        words = read_word_list()
+        if words is None:
+            return
+        if not check_word_list(words):
+            return
+        update_omitted_words(args.omit, words)
+    else:
+        print("Unsupported menu selection")
 
 
 def compare_solutions(
@@ -256,6 +266,54 @@ def load_golden(filepath: str) -> list[tuple[int, Placements]]:
                     (placements, score),
                 )
     return output
+
+
+def read_word_list() -> Optional[list[str]]:
+    while True:
+        user_input = input("\nEnter word or comma-separated words: ")
+        try:
+            input_words = user_input.split(",")
+            words = []
+            words_valid = True
+            for raw_word in input_words:
+                word = raw_word.upper().strip()
+                if re.match(WORD_PATTERN, word):
+                    words.append(word)
+                else:
+                    words_valid = False
+                    break
+            if words_valid:
+                return words
+        except KeyboardInterrupt:
+            print("Exiting.")
+            return None
+
+
+def check_word_list(words: list[str]) -> bool:
+    words_list = ""
+    for index, word in enumerate(words):
+        if index != 0:
+            words_list += ", "
+        words_list += f"{RED}{word}{ENDC}"
+    response = input(f"Add the following words: {words_list}\nDo you want to continue [Y/n]? ")
+    return response.upper().strip() == "Y"
+
+
+def update_omitted_words(filepath: str, words: list[str]):
+    existing_words = []
+    if os.path.exists(filepath):
+        existing_words = []
+        with open(filepath, "r") as file:
+            for line in file.readlines():
+                if line == "":
+                    continue
+                existing_words.append(line.strip().upper())
+    new_words = list(set(existing_words + words))
+    new_words.sort()
+    with open(filepath, 'w') as file:
+        for word in new_words:
+            file.write(f"{word}\n")
+    print(f"Updated {filepath}")
 
 
 if __name__ == "__main__":
