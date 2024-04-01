@@ -26,7 +26,7 @@ fn initial_eval(
 
     let turns = vec![];
     for (letter, remaining_letters) in UniqueFirstAndRestIterator::new(letters) {
-        for position in next_positions {}
+        for position in &next_positions {}
     }
     turns
 }

@@ -1,4 +1,6 @@
 use crate::board_iterator::BoardIterator;
+use crate::direction_iterator::DirectionIterator;
+use crate::enums::Direction;
 use crate::position::Position;
 use crate::size::Size;
 use crate::util::char_from_string;
@@ -62,11 +64,9 @@ impl Board {
         Ok(Board { size, state })
     }
 
-    pub fn get_letter(&self, position: &Position) -> Option<Letter> {
-        self.state[position.row][position.col]
+    pub fn get_letter(&self, position: &Position) -> &Option<Letter> {
+        &self.state[position.row][position.col]
     }
-
-    pub fn is_any_adjacent_position_filled(&self, position: &Position) -> bool {}
 
     /// A position is a valid first tile position if it is empty but is adjacent to any non-empty
     /// tile.
@@ -74,6 +74,14 @@ impl Board {
         if !self.get_letter(position).is_none() {
             return false;
         }
+        for direction in DirectionIterator::new() {
+            if let Some(adjacent_position) = &self.size.increment(position, direction) {
+                if let Some(_) = self.get_letter(adjacent_position) {
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 
     pub fn get_first_tile_positions(&self) -> Vec<Position> {
@@ -81,6 +89,24 @@ impl Board {
             .into_iter()
             .filter(|x| self.is_valid_first_tile_position(x))
             .collect()
+    }
+
+    /// Checks adjacent tiles in the given direction and returns the last non-empty tile.
+    /// If no non-empty tiles exist in that direction, returns the starting position.
+    fn get_last_non_empty_tile(self, position: &Position, direction: Direction) -> Position {
+        let mut curr_position = *position;
+        loop {
+            match &self.size.increment(position, direction) {
+                Some(new_position) => match self.get_letter(new_position) {
+                    Some(_) => {
+                        curr_position = *new_position;
+                    }
+                    None => break,
+                },
+                None => break,
+            }
+        }
+        curr_position
     }
 }
 
