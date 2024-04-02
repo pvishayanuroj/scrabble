@@ -1,8 +1,10 @@
+#[derive(Copy, Clone)]
 pub enum Shape {
     Vertical,
     Horizontal,
 }
 
+#[derive(Copy, Clone)]
 pub enum Direction {
     Left,
     Right,

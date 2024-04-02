@@ -1,7 +1,6 @@
 use std::fmt;
 
-use crate::enums::Direction;
-
+#[derive(Copy, Clone)]
 pub struct Position {
     pub row: usize,
     pub col: usize,
@@ -10,15 +9,6 @@ pub struct Position {
 impl Position {
     pub fn new(row: usize, col: usize) -> Position {
         Position { row, col }
-    }
-
-    pub fn increment(&self, direction: Direction) -> Position {
-        match direction {
-            Direction::Left => Position::new(self.row - 1),
-            Direction::Right => todo!(),
-            Direction::Up => todo!(),
-            Direction::Down => todo!(),
-        }
     }
 }
 
