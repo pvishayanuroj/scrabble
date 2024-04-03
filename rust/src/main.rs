@@ -16,6 +16,7 @@ pub mod size;
 pub mod turn;
 pub mod unique_and_first_iterator;
 pub mod util;
+pub mod word_placement;
 
 fn main() {
     let dictionary = Dictionary::from_file(

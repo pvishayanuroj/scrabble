@@ -3,8 +3,8 @@ use std::fmt;
 use crate::{letter::Letter, position::Position};
 
 pub struct Placement {
-    letter: Letter,
-    position: Position,
+    pub letter: Letter,
+    pub position: Position,
 }
 
 impl Placement {

@@ -1,9 +1,11 @@
 use crate::board_iterator::BoardIterator;
 use crate::direction_iterator::DirectionIterator;
-use crate::enums::Direction;
+use crate::enums::{Direction, Shape};
+use crate::placement::Placement;
 use crate::position::Position;
 use crate::size::Size;
 use crate::util::char_from_string;
+use crate::word_placement::WordPlacement;
 use crate::{letter::Letter, util::read_lines};
 use std::fmt;
 use std::io;
@@ -91,22 +93,70 @@ impl Board {
             .collect()
     }
 
-    /// Checks adjacent tiles in the given direction and returns the last non-empty tile.
-    /// If no non-empty tiles exist in that direction, returns the starting position.
-    fn get_last_non_empty_tile(self, position: &Position, direction: Direction) -> Position {
-        let mut curr_position = *position;
+    /// Checks adjacent tiles in the given direction and returns the longest "word" formed by tiles
+    /// in that direction. Returns none if no filled tiles were found.
+    fn get_contiguous_letters(
+        &self,
+        position: &Position,
+        direction: Direction,
+    ) -> Option<WordPlacement> {
+        let mut start_position = None;
+        let mut end_position = None;
+        let mut word = String::new();
         loop {
             match &self.size.increment(position, direction) {
                 Some(new_position) => match self.get_letter(new_position) {
-                    Some(_) => {
-                        curr_position = *new_position;
+                    Some(letter) => {
+                        word.push(letter.val);
+                        start_position.get_or_insert(*new_position);
+                        end_position.insert(*new_position);
                     }
                     None => break,
                 },
                 None => break,
             }
         }
-        curr_position
+
+        match (start_position, end_position) {
+            (Some(start_position), Some(end_position)) => match direction {
+                Direction::Right | Direction::Down => {
+                    Some(WordPlacement::new(word, start_position, end_position))
+                }
+                Direction::Left | Direction::Up => Some(WordPlacement::new(
+                    word.chars().rev().collect(),
+                    end_position,
+                    start_position,
+                )),
+            },
+            _ => None,
+        }
+    }
+
+    pub fn get_word_from_placement(&self, placement: &Placement, shape: Shape) -> WordPlacement {
+        let start_word = self.get_contiguous_letters(&placement.position, shape.start_direction());
+        let end_word = self.get_contiguous_letters(&placement.position, shape.end_direction());
+        match (start_word, end_word) {
+            (None, None) => WordPlacement::new(
+                placement.letter.val.to_string(),
+                placement.position,
+                placement.position,
+            ),
+            (None, Some(end_word)) => WordPlacement::new(
+                placement.letter.val.to_string() + &end_word.word,
+                placement.position,
+                end_word.end_position,
+            ),
+            (Some(start_word), None) => WordPlacement::new(
+                start_word.word + &placement.letter.val.to_string(),
+                start_word.start_position,
+                placement.position,
+            ),
+            (Some(start_word), Some(end_word)) => WordPlacement::new(
+                start_word.word + &placement.letter.val.to_string() + &end_word.word,
+                start_word.start_position,
+                end_word.end_position,
+            ),
+        }
     }
 }
 
