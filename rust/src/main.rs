@@ -22,6 +22,7 @@ fn main() {
     let dictionary = Dictionary::from_file(
         "../dictionaries/279k-dictionary.txt",
         Some("../dictionaries/omit.txt"),
+        false,
     );
     let board = Board::from_file("../testcases/test3_state.txt").unwrap();
     println!("{}", board);
